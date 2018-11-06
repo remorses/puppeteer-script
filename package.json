@@ -1,0 +1,27 @@
+{
+  "name": "puppeteer-script",
+  "version": "1.0.0",
+  "description": "Execute actions trought a readable yaml script",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/remorses/puppeteer-script.git"
+  },
+  "keywords": [],
+  "author": "Tommaso De Rossi, morse <beats.by.morse@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/remorses/puppeteer-script/issues"
+  },
+  "homepage": "https://github.com/remorses/puppeteer-script#readme",
+  "dependencies": {
+    "@types/puppeteer": "^1.9.1",
+    "@types/yaml": "^1.0.0",
+    "puppeteer": "^1.10.0",
+    "yaml": "^1.0.0"
+  }
+}

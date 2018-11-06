@@ -1,0 +1,31 @@
+
+executable: "/apps/chrome"
+emulate: "Imac 2017"
+abort: ["media", "image", "websocket", "stylesheet", "font", "manifest"]
+
+
+do:
+  - new page: "google.com"
+  - set cookies: "./cookies.json"
+  - set user agent: "./userAgent.json"
+  - go to: "example.com"
+  - click: "selector > div"
+  - type: "username"
+  - press: "enter"
+  - select: ["selection", "selector"]
+  - inject: "./jquery.js"
+  - evaluate: console.log("fuckkk")
+  - echo: "doing good job "
+
+  - new window: "site.com"
+  - new page: "url.it"
+
+  - target page: -2 # pass on page number -2, last before this
+  - target window: -2 # ignores a popup
+
+  - close window: -1 # closes current window
+  - close page: -1 # close current page
+
+  - wait: 100
+  - solve recaptcha: "selector > div"
+  - screenshot: "./screen.jpg"
