@@ -11,7 +11,7 @@ do:
   - set user agent: "./userAgent.json"
   - go to:   "example.com"
   - click:   "selector > div"
-  - click: { selector: selector > div, containig: \regex\ }
+  - click: { selector: selector > div, containing: /regex/ }
   - type:    "username" # keyboard.type
   - press:   "enter"
   # - select:  { selector: selector > div, selection: "1" }

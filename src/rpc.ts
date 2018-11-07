@@ -21,7 +21,7 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
   "do": {
 
     // TODO create interface
-    "click": async (arg: ObjArg | string) => {
+    "click": (page: Page) => async (arg: ObjArg | string) => {
       if (typeof arg === "object") {
         const { selector = "", containing = "", ...options } = arg;
         const element = await findElement(page, <string>selector, <string>containing)
@@ -55,10 +55,13 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
 
     "close page": async (index = -1) => {
       const pages = await browser.pages()
+
       if (index < 0) {
         return pages[pages.length + index].close()
       } else {
-        return pages[index].close()
+        const newPage = await changedPage(browser)
+        await pages[index].close()
+        return await newPage
       }
     },
 
@@ -67,7 +70,8 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
       if (index < 0) {
         return pages[pages.length + index].bringToFront()
       } else {
-        return pages[index].bringToFront()
+        await pages[index].bringToFront();
+        return pages[index]
       }
     },
 
@@ -178,3 +182,15 @@ export const getAttribute = async (page: Page, element: ElementHandle, attribute
 interface ObjArg {
   [key: string]: string | number | boolean | RegExp
 }
+
+
+const changedPage =  async (browser: Browser) => {
+    return new Promise(x =>
+        browser.on('targetchanged', async target => {
+            if (target.type() === 'page') {
+              x(await target.page())
+
+            }
+        })
+    );
+};
