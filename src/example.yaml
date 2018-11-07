@@ -5,9 +5,12 @@ abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
 do:
   - wait: 100
   - go to:   "https://www.instagram.com/accounts/emailsignup/"
+  - wait: 0
   - click:   'input[name="emailOrPhone"]'
   - type:    "username" # keyboard.type
-  - click: { selector: 'input[name="fullName"]', containing: /.*/ }
+  - wait: 0
+  - click: { selector: 'input[name="emailOrPhone"]', containing: /.*/ }
+  - wait: 0
   - inject:  "./jquery.js"
   - evaluate: console.log("fuckkk")
   - echo:    doing good job

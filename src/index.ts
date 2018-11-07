@@ -1,4 +1,4 @@
 
 import { fromYAML } from "./fromYAML"
 
-fromYAML("./example.yaml").then()
+fromYAML("./example.yaml")
