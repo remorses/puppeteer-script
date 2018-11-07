@@ -19,9 +19,9 @@ const fromYAML = async (path = "") => {
 
   await puppeteer.launch({headless, executablePath }).then(async (browser: Browser) => {
     const pages = await browser.pages()
-    const page = pages[0]
+    let page = pages[0]
 
-    const functionsObject: Object = rpc(browser, page, false)
+    const functionsObject: Object = rpc(browser, false)
 
 
     for (let step of script.do) {
@@ -29,12 +29,8 @@ const fromYAML = async (path = "") => {
       debug("index " + value + " " + key)("pages: " + browser.pages())
       debug("index " + value + " " + key)("targets: " + browser.targets())
 
-
-      await (<any>functionsObject)[value](key)
+      page = await (<any>functionsObject)[value](page)(key)
         .catch((e: Error) => console.error("error in", key, ":", value, "\n", e))
-
-
-
     }
 
 

@@ -7,7 +7,7 @@ const myDevices = require("./devices")
 const devices = { ...puppeteerDevices, ...myDevices }
 
 
-export default (browser: Browser, page: Page, logger: any, ) => ({
+export default (browser: Browser,  logger: any, ) => ({
 
   "executable": (x: any) => x, // do nothing, already handled
 
@@ -26,38 +26,61 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
         const { selector = "", containing = "", ...options } = arg;
         const element = await findElement(page, <string>selector, <string>containing)
         if (!element) throw new Error("no element")
-        return await element.click()
+        await element.click()
       } else {
-        return page.click(arg)
+        page.click(arg)
       }
+      return page
     },
 
-    "type": async (arg: ObjArg | string) => {
+    "type": (page: Page) => async (arg: ObjArg | string) => {
       if (typeof arg === "object") {
         const { selector, containing, ...options } = arg;
         const element = await findElement(page, <string>selector, <string>containing)
         if (!element) throw new Error("no element")
-        return await element.click()
+        await element.click()
       } else {
-        return page.keyboard.type(arg)
+        page.keyboard.type(arg)
       }
+      return page
     },
 
-    "press": (button: string) => page.keyboard.press(button),
+    "press": (page: Page) => (button: string) => {
+      page.keyboard.press(button)
+      return page
+    },
 
-    "new page": (url = "") => browser.newPage().then(page => page.goto(url)),
+    "new page": (page: Page) => (url = "") => {
+      let _page
+      browser.newPage()
+        .then(page => _page = page)
+        .then(page => page.goto(url))
+      return _page
+    },
 
-    "go to": (url = "") => page.goto(url),
+    "go to": (page: Page) => (url = "") => {
+      page.goto(url)
+      return page
+    },
 
-    "wait": (time = 0) => time ? page.waitFor(time) : waitForLoad(page),
+    "wait": (page: Page) => (time = 0) => {
+      time ? page.waitFor(time) : waitForLoad(page)
+      return page
+    },
 
-    "echo": (text = "") => logger(text),
+    "echo": (page: Page) => (text = "") => {
+      logger(text)
+      return page
+    },
 
-    "close page": async (index = -1) => {
+    "close page": (page: Page) => async (index = -1) => {
       const pages = await browser.pages()
 
       if (index < 0) {
-        return pages[pages.length + index].close()
+        const newPage = await changedPage(browser)
+        pages[pages.length + index].close()
+        return await newPage
+
       } else {
         const newPage = await changedPage(browser)
         await pages[index].close()
@@ -65,46 +88,58 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
       }
     },
 
-    "target page": async (index = -1) => {
+    "target page": (page: Page) => async (index = -1) => {
       const pages = await browser.pages()
       if (index < 0) {
-        return pages[pages.length + index].bringToFront()
+         pages[pages.length + index].bringToFront()
+         return pages[pages.length + index]
       } else {
         await pages[index].bringToFront();
         return pages[index]
       }
     },
 
-    "screenshot": (path: "./screen.jpg") => page.screenshot({ path }),
-
-    "inject": (path: "./file.js") => {
-      const file = fs.readFileSync(join(__dirname, path), 'utf8')
-      return page.evaluate(file)
+    "screenshot": (page: Page) => (path: "./screen.jpg") => {
+      page.screenshot({ path })
+      return page
     },
 
-    "evaluate": (code = "") => page.evaluate(code),
-
-
-    "set user agent": (path: "./file.js") => {
+    "inject": (page: Page) => (path: "./file.js") => {
       const file = fs.readFileSync(join(__dirname, path), 'utf8')
-      return page.setUserAgent(file)
+      page.evaluate(file)
+      return page
     },
-    "set cookies": (path: "./file.js") => {
+
+    "evaluate": (page: Page) => (code = "") => {
+      page.evaluate(code)
+      return page
+    },
+
+
+    "set user agent": (page: Page) => (path: "./file.js") => {
+      const file = fs.readFileSync(join(__dirname, path), 'utf8')
+      page.setUserAgent(file)
+      return page
+    },
+    "set cookies": (page: Page) => (path: "./file.js") => {
       const file = require(path)
-      return page.setCookie(...file)
+      page.setCookie(...file)
+      return page
     },
 
-    "export html": async (path: "./file.html") => {
+    "export html": (page: Page) => async (path: "./file.html") => {
       const content = await page.content()
-      return await fs.writeFile(path, content)
+      await fs.writeFile(path, content)
+      return page
     },
 
-    "solve nocaptcha": async (selector: string) => {
+    "solve nocaptcha": (page: Page) => async (selector: string) => {
       const element = await findElement(page, selector)
       if (!element) throw new Error("can't find nocaptcha element")
       const captcha: ElementHandle = element
       const sitekey = await getAttribute(page, captcha, "data-sitekey")
-      return await solveCaptcha(browser, page, sitekey, { proxy: true })
+      await solveCaptcha(browser, page, sitekey, { proxy: true })
+      return page
     }
   }
 
@@ -149,7 +184,7 @@ const emulateBrowser = async (browser: Browser, device: string) => {
 
 
 // TODO regex
-const findElement = async (page: Page, selector = "div", regex: string  = "/.*/", ): Promise<ElementHandle | null> => {
+const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
   if (elements.length < 1) return null
@@ -184,13 +219,13 @@ interface ObjArg {
 }
 
 
-const changedPage =  async (browser: Browser) => {
-    return new Promise(x =>
-        browser.on('targetchanged', async target => {
-            if (target.type() === 'page') {
-              x(await target.page())
+const changedPage = async (browser: Browser) => {
+  return new Promise(x =>
+    browser.on('targetchanged', async target => {
+      if (target.type() === 'page') {
+        x(await target.page())
 
-            }
-        })
-    );
+      }
+    })
+  );
 };
