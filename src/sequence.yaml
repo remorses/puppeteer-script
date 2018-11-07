@@ -28,7 +28,7 @@ do:
   - close page: -1 # close current page
 
   - wait:    100
-  - solve recaptcha: "selector > div"
+  - solve nocaptcha: "selector > div"
   - screenshot: "./screen.jpg"
 
   - export html: "./file.html"

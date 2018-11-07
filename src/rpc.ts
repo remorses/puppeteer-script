@@ -75,7 +75,7 @@ export default (browser: Browser, page: Page, logger: any) => ({
     return await fs.writeFile(path, content)
   },
 
-  "solve recaptcha": async (selector: string) => {
+  "solve nocaptcha": async (selector: string) => {
     const captcha: ElementHandle = await findElement(page, selector)
     const sitekey = await getAttribute(page, captcha, "data-sitekey")
     return await solveCaptcha(browser, page, sitekey, {proxy: true})
