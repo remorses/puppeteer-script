@@ -43,6 +43,8 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
       }
     },
 
+    "press": (button: string) => page.keyboard.press(button),
+
     "new page": (url = "") => browser.newPage().then(page => page.goto(url)),
 
     "go to": (url = "") => page.goto(url),
@@ -143,14 +145,15 @@ const emulateBrowser = async (browser: Browser, device: string) => {
 
 
 // TODO regex
-const findElement = async (page: Page, selector = "div", content: string | RegExp = /.*/, ): Promise<ElementHandle | null> => {
+const findElement = async (page: Page, selector = "div", regex: string  = "/.*/", ): Promise<ElementHandle | null> => {
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
   if (elements.length < 1) return null
   for (let element of elements) {
     let inner = await getContent(element)
+    if (!inner) return null
     //  debug(inner.trim())
-    if (inner.trim() === content) {
+    if (new RegExp(regex).test(inner.trim())) {
       // debug(inner, ", findElement");
       return element
     }
@@ -159,9 +162,9 @@ const findElement = async (page: Page, selector = "div", content: string | RegEx
 }
 
 
-const getContent = async (element: ElementHandle): Promise<string> => {
+const getContent = async (element: ElementHandle): Promise<string | null> => {
   const inner = await element.getProperty("textContent")
-  if (!inner) throw new Error(`can't proceed getContent, no textContent`)
+  if (!inner) return null
   return (await inner.jsonValue()).trim()
 }
 
