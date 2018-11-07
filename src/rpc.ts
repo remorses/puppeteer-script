@@ -1,5 +1,5 @@
 import * as fs from "mz/fs"
-import { Browser, Page, ElementHandle } from "puppeteer"
+import { Browser, Page, ElementHandle, JSHandle } from "puppeteer"
 import { join } from "path"
 import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 export default (browser: Browser, page: Page, logger: any) => ({
@@ -129,7 +129,7 @@ const getContent = async (element: ElementHandle): Promise<string> => {
 
 
 
-export const getAttribute = async (page: Page, element: ElementHandle, attribute): Promise<JSHandle> => {
-  const value = await page.evaluateHandle((element, attribute) => element.attribute, element, attribute);
+export const getAttribute = async (page: Page, element: ElementHandle, attribute: string): Promise<string> => {
+  const value = await page.evaluate((element, attribute) => element.attribute, element, attribute);
   return value
 }
