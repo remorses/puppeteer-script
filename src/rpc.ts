@@ -8,6 +8,8 @@ const devices = require('puppeteer/DeviceDescriptors');
 
 export default (browser: Browser, page: Page, logger: any, ) => ({
 
+  "executable": (x: any) => x, // TODO launch the browser with right exec,
+
   "abort": (resources = []) => abortBrowserRequests(browser, resources),
 
   "emulate": (device: string) => emulate(browser, page, device),
@@ -15,20 +17,22 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
 
   "do": {
 
-    "click": (arg: Object | string) => {
+    "click": async (arg: Object | string) => {
       if (typeof arg === "object") {
-        const { selector, with, ...options } = arg;
-        const element = await findElement(page, selector, content)
+        const { selector, containing, ...options } = arg;
+        const element = await findElement(page, selector, containing)
+        if (!element) throw new Error("no element")
         return await element.click(...options)
       } else {
         return page.click(arg)
       }
     },
 
-    "type": (arg: Object | string) => {
+    "type": async (arg: Object | string) => {
       if (typeof arg === "object") {
-        const { selector, with, ...options } = arg;
-        const element = await findElement(page, selector, content)
+        const { selector, containing, ...options } = arg;
+        const element = await findElement(page, selector, containing)
+        if (!element) throw new Error("no element")
         return await element.click(...options)
       } else {
         return page.keyboard.type(arg)
@@ -119,16 +123,16 @@ const abortBrowserRequests = async (browser: Browser, types = []) => {
   browser.on('targetcreated',(target: Target) => abortPageRequests(await target.page(), types) )
 }
 
-// TODO
+// TODO add other desktop devices
 const  emulate = async(browser: Browser, page: Page, device: string) => {
   page.emulate(devices[device])
 }
 
-// TODO
-const findElement = async (page: Page, selector = "div", content: string | RegExp = "",  ) => {
+// TODO regex
+const findElement = async (page: Page, selector = "div", content: string | RegExp = "",  ): Promise<ElementHandle | null> => {
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
-  if (elements.length < 1) throw new Error(`can't proceed findElement for ${content}, no elements`)
+  if (elements.length < 1) return null
   for (let element of elements) {
     let inner = await getContent(element)
     //  debug(inner.trim())
@@ -137,6 +141,7 @@ const findElement = async (page: Page, selector = "div", content: string | RegEx
       return element
     }
   }
+  return null
 }
 
 
