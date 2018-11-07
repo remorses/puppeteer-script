@@ -9,7 +9,7 @@ do:
   - click:   'input[name="emailOrPhone"]'
   - type:    "username" # keyboard.type
   - wait: 0
-  - click: { selector: 'input[name="emailOrPhone"]', containing: /.*/ }
+  - click: { selector: 'input[name="emailOrPhone"]' }
   - wait: 0
   - inject:  "./jquery.js"
   - evaluate: console.log("fuckkk")

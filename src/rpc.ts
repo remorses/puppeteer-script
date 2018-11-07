@@ -53,7 +53,7 @@ export default (browser: Browser,  logger: any, ) => ({
     },
 
     "new page": (page: Page) => (url = "") => {
-      let _page
+      let _page: Page
       browser.newPage()
         .then(page => _page = page)
         .then(page => page.goto(url))
@@ -186,7 +186,7 @@ const emulateBrowser = async (browser: Browser, device: string) => {
 
 
 // TODO regex
-const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
+const findElement = async (page: Page, selector = "div", regex: string = "/.*|\n/", ): Promise<ElementHandle | null> => {
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
    if (elements.length < 1) return null
