@@ -1,21 +1,25 @@
-import * as fs from "fs"
-import { Browser, Page } from "puppeteer"
+import * as fs from "mz/fs"
+import { Browser, Page, ElementHandle } from "puppeteer"
 import { join } from "path"
 export default (browser: Browser, page: Page, logger: any) => ({
 
-  "click": (selector: string, check = "") => {
-    if (!check) {
-      return page.click(selector)
+  "click": (arg: Object | string) => {
+    if (typeof arg === "object") {
+      const { selector, with, ...options } = arg;
+      const element = await findElement(page, selector, content )
+      return await element.click(...options)
     } else {
-      return page.click(selector)
+      return page.click(arg)
     }
   },
 
-  "type": (selector: string, check = "", text = "") => {
-    if (!check) {
-      return page.type(selector, text)
+  "type": (arg: Object | string) => {
+    if (typeof arg === "object") {
+      const { selector, with, ...options } = arg;
+      const element = await findElement(page, selector, content )
+      return await element.click(...options)
     } else {
-      return page.type(selector, text)
+      return page.keyboard.type(arg)
     }
   },
 
@@ -52,9 +56,9 @@ export default (browser: Browser, page: Page, logger: any) => ({
     return page.evaluate(file)
   },
 
-  "evaluate": (code=  "") => page.evaluate(code),
+  "evaluate": (code = "") => page.evaluate(code),
 
-  "abort": (resources= []) => abortRequests(page, resources),
+  "abort": (resources = []) => abortRequests(page, resources),
 
   "set user agent": (path: "./file.js") => {
     const file = fs.readFileSync(join(__dirname, path), 'utf8')
@@ -63,6 +67,11 @@ export default (browser: Browser, page: Page, logger: any) => ({
   "set cookies": (path: "./file.js") => {
     const file = require(path)
     return page.setCookie(...file)
+  },
+
+  "export html": async (path: "./file.html") => {
+    const content = await page.content()
+    return await fs.writeFile(path, content)
   },
 
 })
@@ -79,9 +88,34 @@ const waitForLoad = (page: Page) => new Promise((resolve) => {
 const abortRequests = async (page: Page, types = []) => {
   await page.setRequestInterception(true);
   page.on('request', req => {
-    if (types.some(x => x === req.resourceType())  )
+    if (types.some(x => x === req.resourceType()))
       req.abort();
     else
       req.continue();
   });
+}
+
+
+
+
+const findElement = async ( page: Page,  selector = "div", content:  string | RegExp,  ) => {
+  await page.waitForSelector(selector)
+  const elements: ElementHandle[] = await page.$$(selector)
+  if (elements.length < 1) throw new Error(`can't proceed findElement for ${content}, no elements`)
+  for (let element of elements) {
+    let inner = await getContent(element)
+    //  debug(inner.trim())
+    if (inner.trim() === content) {
+      // debug(inner, ", findElement");
+      return element
+    }
+  }
+}
+
+
+
+const getContent = async (element: ElementHandle): Promise<string> => {
+  const inner = await element.getProperty("textContent")
+  if (!inner) throw new Error(`can't proceed getContent, no textContent`)
+  return (await inner.jsonValue()).trim()
 }
