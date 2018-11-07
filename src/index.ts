@@ -13,11 +13,11 @@ const debug = require("debug")
 const fromYAML = async (path = "") => {
   const file = fs.readFileSync(join(__dirname, path), 'utf8')
   const script = YAML.parse(file)
-  const executable: string = script["executable"]
+  const executablePath: string = script["executable"] || ""
   const headless: boolean = script["headless"] || true
 
 
-  await puppeteer.launch({headless, executablePath: executable ? executable : ""}).then(async (browser: Browser) => {
+  await puppeteer.launch({headless, executablePath }).then(async (browser: Browser) => {
     const page = await browser.newPage()
 
     const functionsObject: Object = rpc(browser, page, false)
