@@ -5,6 +5,7 @@ import * as fs from "fs"
 import { join } from "path"
 import puppeteer from "puppeteer"
 
+const debug = require("debug")
 
 
 
@@ -21,6 +22,8 @@ const fromYAML = async (path = "") => {
 
     for (let step of script.do) {
       let [value, key] = step.items()
+      debug("index " + value + " " + key)("pages: " + browser.pages())
+      debug("index " + value + " " + key)("targets: " + browser.targets())
 
 
       await (<any>functionsObject)[value](key)

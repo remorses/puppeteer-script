@@ -10,10 +10,10 @@ do:
   - set user agent: "./userAgent.json"
   - go to:   "example.com"
   - click:   "selector > div"
-  - click: {selector: selector > div, content: \regex\ }
+  - click: { selector: selector > div, content: \regex\ }
   - type:    "username" # keyboard.type
   - press:   "enter"
-  - select:  ["selection", "selector"]
+  - select:  { selector: selector > div, selection: "1" }
   - inject:  "./jquery.js"
   - evaluate: console.log("fuckkk")
   - echo:    "doing good job "
