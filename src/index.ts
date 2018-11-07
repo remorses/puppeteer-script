@@ -18,7 +18,8 @@ const fromYAML = async (path = "") => {
 
 
   await puppeteer.launch({headless, executablePath }).then(async (browser: Browser) => {
-    const page = await browser.newPage()
+    const pages = await browser.pages()
+    const page = pages[0]
 
     const functionsObject: Object = rpc(browser, page, false)
 
