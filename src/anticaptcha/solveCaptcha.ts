@@ -28,7 +28,7 @@ export const solveCaptcha = async (browser: Browser, page: Page,  sitekey = "", 
   }
 
   //browser header parameters
-  anticaptcha.setUserAgent(await browser.userAgent());
+  anticaptcha.setUserAgent(await page.evaluate("navigator.userAgent"));
   anticaptcha.setCookies(await page.cookies());
 
   const balance = await getBalance
