@@ -22,11 +22,10 @@ const fromYAML = async (path = "") => {
     for (let step of script.do) {
       let [value, key] = step.items()
 
-      try {
-        await functionsObject[value](key)
-      } catch (e) {
-        console.error("error in", key, ":", value, "\n", e)
-      }
+
+      await (<any>functionsObject)[value](key)
+        .catch((e: Error) => console.error("error in", key, ":", value, "\n", e))
+
 
 
     }
