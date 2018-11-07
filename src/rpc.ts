@@ -4,7 +4,9 @@ import { join } from "path"
 import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 const devices = require('puppeteer/DeviceDescriptors');
 
-
+interface ObjArg  {
+  [key: string ]: string | number | boolean | RegExp
+}
 
 export default (browser: Browser, page: Page, logger: any, ) => ({
 
@@ -18,23 +20,23 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
   "do": {
 
     // TODO create interface
-    "click": async (arg: Object | string) => {
+    "click": async (arg: ObjArg | string) => {
       if (typeof arg === "object") {
-        const { selector, containing, ...options } = arg;
-        const element = await findElement(page, selector, containing)
+        const { selector = "", containing = "", ...options } = arg;
+        const element = await findElement(page, <string>selector, <string>containing)
         if (!element) throw new Error("no element")
-        return await element.click(...options)
+        return await element.click()
       } else {
         return page.click(arg)
       }
     },
 
-    "type": async (arg: Object | string) => {
+    "type": async (arg: ObjArg | string) => {
       if (typeof arg === "object") {
         const { selector, containing, ...options } = arg;
-        const element = await findElement(page, selector, containing)
+        const element = await findElement(page, <string>selector, <string>containing)
         if (!element) throw new Error("no element")
-        return await element.click(...options)
+        return await element.click()
       } else {
         return page.keyboard.type(arg)
       }
