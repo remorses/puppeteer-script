@@ -2,19 +2,20 @@ import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join } from "path"
 import { solveCaptcha } from "./anticaptcha/solveCaptcha";
-const devices = require('puppeteer/DeviceDescriptors');
+const puppeteerDevices = require('puppeteer/DeviceDescriptors');
+const myDevices = require("./devices")
+const devices = { ...puppeteerDevices, ...myDevices }
 
-interface ObjArg  {
-  [key: string ]: string | number | boolean | RegExp
-}
 
 export default (browser: Browser, page: Page, logger: any, ) => ({
 
-  "executable": (x: any) => x, // TODO launch the browser with right exec,
+  "executable": (x: any) => x, // do nothing, already handled
+
+  "headless": (x: any) => x,
 
   "abort": (resources = []) => abortBrowserRequests(browser, resources),
 
-  "emulate": (device: string) => emulate(browser, page, device),
+  "emulate": (device: string) => emulateBrowser(browser, device),
 
 
   "do": {
@@ -124,17 +125,25 @@ const abortPageRequests = async (page: Page, types = []) => {
 
 const abortBrowserRequests = async (browser: Browser, types = []) => {
   const pages = await browser.pages()
-  pages.forEach( (page: Page) =>   abortPageRequests(page, types))
-  browser.on('targetcreated',async (target: Target) => abortPageRequests(await target.page(), types) )
+  pages.forEach((page: Page) => abortPageRequests(page, types))
+  browser.on('targetcreated', async (target: Target) => abortPageRequests(await target.page(), types))
 }
 
 // TODO add other desktop devices
-const  emulate = async(browser: Browser, page: Page, device: string) => {
+const emulatePage = async (page: Page, device: string) => {
   page.emulate(devices[device])
 }
 
+// TODO add other desktop devices
+const emulateBrowser = async (browser: Browser, device: string) => {
+  const pages = await browser.pages()
+  pages.forEach((page: Page) => emulatePage(page, device))
+  browser.on('targetcreated', async (target: Target) => emulatePage(await target.page(), device))
+}
+
+
 // TODO regex
-const findElement = async (page: Page, selector = "div", content: string | RegExp = /.*/,  ): Promise<ElementHandle | null> => {
+const findElement = async (page: Page, selector = "div", content: string | RegExp = /.*/, ): Promise<ElementHandle | null> => {
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
   if (elements.length < 1) return null
@@ -160,4 +169,9 @@ const getContent = async (element: ElementHandle): Promise<string> => {
 export const getAttribute = async (page: Page, element: ElementHandle, attribute: string): Promise<string> => {
   const value = await page.evaluate((element, attribute) => element.attribute, element, attribute);
   return value
+}
+
+
+interface ObjArg {
+  [key: string]: string | number | boolean | RegExp
 }
