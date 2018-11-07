@@ -17,6 +17,7 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
 
   "do": {
 
+    // TODO create interface
     "click": async (arg: Object | string) => {
       if (typeof arg === "object") {
         const { selector, containing, ...options } = arg;
@@ -90,7 +91,9 @@ export default (browser: Browser, page: Page, logger: any, ) => ({
     },
 
     "solve nocaptcha": async (selector: string) => {
-      const captcha: ElementHandle = await findElement(page, selector)
+      const element = await findElement(page, selector)
+      if (!element) throw new Error("can't find nocaptcha element")
+      const captcha: ElementHandle = element
       const sitekey = await getAttribute(page, captcha, "data-sitekey")
       return await solveCaptcha(browser, page, sitekey, { proxy: true })
     }
@@ -119,8 +122,8 @@ const abortPageRequests = async (page: Page, types = []) => {
 
 const abortBrowserRequests = async (browser: Browser, types = []) => {
   const pages = await browser.pages()
-  pages.forEach((page: Page) => await  abortPageRequests(page, types))
-  browser.on('targetcreated',(target: Target) => abortPageRequests(await target.page(), types) )
+  pages.forEach( (page: Page) =>   abortPageRequests(page, types))
+  browser.on('targetcreated',async (target: Target) => abortPageRequests(await target.page(), types) )
 }
 
 // TODO add other desktop devices
@@ -129,7 +132,7 @@ const  emulate = async(browser: Browser, page: Page, device: string) => {
 }
 
 // TODO regex
-const findElement = async (page: Page, selector = "div", content: string | RegExp = "",  ): Promise<ElementHandle | null> => {
+const findElement = async (page: Page, selector = "div", content: string | RegExp = /.*/,  ): Promise<ElementHandle | null> => {
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
   if (elements.length < 1) return null

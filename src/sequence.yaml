@@ -1,5 +1,6 @@
 
 executable:  "/apps/chrome"
+headless: false
 emulate:     "Imac 2017"
 abort:       ["media", "image", "websocket", "stylesheet", "font", "manifest"]
 
