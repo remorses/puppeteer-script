@@ -1,6 +1,7 @@
 import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle } from "puppeteer"
 import { join } from "path"
+import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 export default (browser: Browser, page: Page, logger: any) => ({
 
   "click": (arg: Object | string) => {
@@ -74,6 +75,12 @@ export default (browser: Browser, page: Page, logger: any) => ({
     return await fs.writeFile(path, content)
   },
 
+  "solve recaptcha": async (selector: string) => {
+    const captcha: ElementHandle = await findElement(page, selector)
+    const sitekey = await getAttribute(page, captcha, "data-sitekey")
+    return await solveCaptcha(browser, page, sitekey, {proxy: true})
+  }
+
 })
 
 
@@ -98,7 +105,7 @@ const abortRequests = async (page: Page, types = []) => {
 
 
 
-const findElement = async ( page: Page,  selector = "div", content:  string | RegExp,  ) => {
+const findElement = async ( page: Page,  selector = "div", content:  string | RegExp = "",  ) => {
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
   if (elements.length < 1) throw new Error(`can't proceed findElement for ${content}, no elements`)
@@ -118,4 +125,11 @@ const getContent = async (element: ElementHandle): Promise<string> => {
   const inner = await element.getProperty("textContent")
   if (!inner) throw new Error(`can't proceed getContent, no textContent`)
   return (await inner.jsonValue()).trim()
+}
+
+
+
+export const getAttribute = async (page: Page, element: ElementHandle, attribute): Promise<JSHandle> => {
+  const value = await page.evaluateHandle((element, attribute) => element.attribute, element, attribute);
+  return value
 }
