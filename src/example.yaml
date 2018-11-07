@@ -1,0 +1,20 @@
+
+headless: false
+abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
+
+do:
+  - wait: 100
+  - go to:   "https://www.instagram.com/accounts/emailsignup/"
+  - click:   'input[name="emailOrPhone"]'
+  - type:    "username" # keyboard.type
+  - click: { selector: 'input[name="fullName"]', containing: /.*/ }
+  - inject:  "./jquery.js"
+  - evaluate: console.log("fuckkk")
+  - echo:    doing good job
+  - new page: "google.com"
+  - target page: -2 # pass on page number -2, last before this
+  - target page: -1
+  - close page: -1 # close current page
+  - wait:    100
+  - screenshot: "./screen.jpg"
+  - export html: "./file.html"

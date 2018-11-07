@@ -13,7 +13,7 @@ const {
 
 const anticaptcha: any = require('./anticaptcha')(ANTICAPTCHA_KEY);
 
-export const solveCaptcha = async (browser: Browser, page: Page,  sitekey = "", {proxy = false, ...options}) => {
+export const solveCaptcha = async (browser: Browser, page: Page, sitekey = "", { proxy = false, ...options }) => {
   //recaptcha key from target website
   anticaptcha.setWebsiteURL(await page.url());
   anticaptcha.setWebsiteKey(sitekey);
@@ -60,7 +60,7 @@ const createTask: Promise<string> = new Promise((res, rej) => {
   })
 })
 
-const getTaskSolution: (a: string) =>  Promise<Object> = taskId =>  new Promise((res, rej) => {
+const getTaskSolution: (a: string) => Promise<Object> = taskId => new Promise((res, rej) => {
   anticaptcha.getTaskSolution(taskId, (err, taskSolution: any) => {
     if (err) {
       rej(err)
@@ -68,4 +68,4 @@ const getTaskSolution: (a: string) =>  Promise<Object> = taskId =>  new Promise(
       res(taskSolution)
     }
   })
-}
+})

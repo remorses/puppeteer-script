@@ -1,13 +1,13 @@
 import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join } from "path"
-import { solveCaptcha } from "./anticaptcha/solveCaptcha";
+// import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 const puppeteerDevices = require('puppeteer/DeviceDescriptors');
 const myDevices = require("./devices")
 const devices = { ...puppeteerDevices, ...myDevices }
 
 
-export default (browser: Browser,  logger: any, ) => ({
+export default (browser: Browser, logger: any, ) => ({
 
   "executable": (x: any) => x, // do nothing, already handled
 
@@ -18,130 +18,160 @@ export default (browser: Browser,  logger: any, ) => ({
   "emulate": (device: string) => emulateBrowser(browser, device),
 
 
-  "do": {
+  "do": [
 
     // TODO create interface
-    "click": (page: Page) => async (arg: ObjArg | string) => {
-      if (typeof arg === "object") {
-        const { selector = "", containing = "", ...options } = arg;
-        const element = await findElement(page, <string>selector, <string>containing)
-        if (!element) throw new Error("no element")
-        await element.click()
-      } else {
-        page.click(arg)
-      }
-      return page
-    },
-
-    "type": (page: Page) => async (arg: ObjArg | string) => {
-      if (typeof arg === "object") {
-        const { selector, containing, ...options } = arg;
-        const element = await findElement(page, <string>selector, <string>containing)
-        if (!element) throw new Error("no element")
-        await element.click()
-      } else {
-        page.keyboard.type(arg)
-      }
-      return page
-    },
-
-    "press": (page: Page) => (button: string) => {
-      page.keyboard.press(button)
-      return page
-    },
-
-    "new page": (page: Page) => (url = "") => {
-      let _page
-      browser.newPage()
-        .then(page => _page = page)
-        .then(page => page.goto(url))
-      return _page
-    },
-
-    "go to": (page: Page) => (url = "") => {
-      page.goto(url)
-      return page
-    },
-
-    "wait": (page: Page) => (time = 0) => {
-      time ? page.waitFor(time) : waitForLoad(page)
-      return page
-    },
-
-    "echo": (page: Page) => (text = "") => {
-      logger(text)
-      return page
-    },
-
-    "close page": (page: Page) => async (index = -1) => {
-      const pages = await browser.pages()
-
-      if (index < 0) {
-        const newPage = await changedPage(browser)
-        pages[pages.length + index].close()
-        return await newPage
-
-      } else {
-        const newPage = await changedPage(browser)
-        await pages[index].close()
-        return await newPage
+    {
+      "click": (page: Page) => async (arg: ObjArg | string) => {
+        if (typeof arg === "object") {
+          const { selector = "", containing = "", ...options } = arg;
+          const element = await findElement(page, <string>selector, <string>containing)
+          if (!element) throw new Error("no element")
+          await element.click()
+        } else {
+          page.click(arg)
+        }
+        return page
       }
     },
 
-    "target page": (page: Page) => async (index = -1) => {
-      const pages = await browser.pages()
-      if (index < 0) {
-         pages[pages.length + index].bringToFront()
-         return pages[pages.length + index]
-      } else {
-        await pages[index].bringToFront();
-        return pages[index]
+    {
+      "type": (page: Page) => async (arg: ObjArg | string) => {
+        if (typeof arg === "object") {
+          const { selector, containing, ...options } = arg;
+          const element = await findElement(page, <string>selector, <string>containing)
+          if (!element) throw new Error("no element")
+          await element.click()
+        } else {
+          page.keyboard.type(arg)
+        }
+        return page
       }
     },
 
-    "screenshot": (page: Page) => (path: "./screen.jpg") => {
-      page.screenshot({ path })
-      return page
+    {
+      "press": (page: Page) => (button: string) => {
+        page.keyboard.press(button)
+        return page
+      }
     },
 
-    "inject": (page: Page) => (path: "./file.js") => {
-      const file = fs.readFileSync(join(__dirname, path), 'utf8')
-      page.evaluate(file)
-      return page
+    {
+      "new page": (page: Page) => (url = "") => {
+        let _page
+        browser.newPage()
+          .then(page => _page = page)
+          .then(page => page.goto(url))
+        return _page
+      }
     },
 
-    "evaluate": (page: Page) => (code = "") => {
-      page.evaluate(code)
-      return page
+    {
+      "go to": (page: Page) => (url = "") => {
+        page.goto(url)
+        return page
+      }
+    },
+
+    {
+      "wait": (page: Page) => (time = 0) => {
+        time ? page.waitFor(time) : waitForLoad(page)
+        return page
+      }
+    },
+
+    {
+      "echo": (page: Page) => (text = "") => {
+        logger(text)
+        return page
+      }
+    },
+
+    {
+      "close page": (page: Page) => async (index = -1) => {
+        const pages = await browser.pages()
+
+        if (index < 0) {
+          const newPage = await changedPage(browser)
+          pages[pages.length + index].close()
+          return await newPage
+
+        } else {
+          const newPage = await changedPage(browser)
+          await pages[index].close()
+          return await newPage
+        }
+      }
+    },
+
+    {
+      "target page": (page: Page) => async (index = -1) => {
+        const pages = await browser.pages()
+        if (index < 0) {
+          pages[pages.length + index].bringToFront()
+          return pages[pages.length + index]
+        } else {
+          await pages[index].bringToFront();
+          return pages[index]
+        }
+      }
+    },
+
+    {
+      "screenshot": (page: Page) => (path: "./screen.jpg") => {
+        page.screenshot({ path })
+        return page
+      }
+    },
+
+    {
+      "inject": (page: Page) => (path: "./file.js") => {
+        const file = fs.readFileSync(join(__dirname, path), 'utf8')
+        page.evaluate(file)
+        return page
+      }
+    },
+
+    {
+      "evaluate": (page: Page) => (code = "") => {
+        page.evaluate(code)
+        return page
+      }
     },
 
 
-    "set user agent": (page: Page) => (path: "./file.js") => {
-      const file = fs.readFileSync(join(__dirname, path), 'utf8')
-      page.setUserAgent(file)
-      return page
+    {
+      "set user agent": (page: Page) => (path: "./file.js") => {
+        const file = fs.readFileSync(join(__dirname, path), 'utf8')
+        page.setUserAgent(file)
+        return page
+      }
     },
-    "set cookies": (page: Page) => (path: "./file.js") => {
-      const file = require(path)
-      page.setCookie(...file)
-      return page
-    },
-
-    "export html": (page: Page) => async (path: "./file.html") => {
-      const content = await page.content()
-      await fs.writeFile(path, content)
-      return page
+    {
+      "set cookies": (page: Page) => (path: "./file.js") => {
+        const file = require(path)
+        page.setCookie(...file)
+        return page
+      }
     },
 
-    "solve nocaptcha": (page: Page) => async (selector: string) => {
-      const element = await findElement(page, selector)
-      if (!element) throw new Error("can't find nocaptcha element")
-      const captcha: ElementHandle = element
-      const sitekey = await getAttribute(page, captcha, "data-sitekey")
-      await solveCaptcha(browser, page, sitekey, { proxy: true })
-      return page
-    }
-  }
+    {
+      "export html": (page: Page) => async (path: "./file.html") => {
+        const content = await page.content()
+        await fs.writeFile(path, content)
+        return page
+      }
+    },
+
+    // {"solve nocaptcha": (page: Page) => async (selector: string) => {
+    //   const element = await findElement(page, selector)
+    //   if (!element) throw new Error("can't find nocaptcha element")
+    //   const captcha: ElementHandle = element
+    //   const sitekey = await getAttribute(page, captcha, "data-sitekey")
+    //   await solveCaptcha(browser, page, sitekey, { proxy: true })
+    //   return page
+    // }}
+  ]
 
 })
 
