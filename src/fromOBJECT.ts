@@ -1,7 +1,7 @@
 
 import * as YAML from "yaml"
 import * as fs from "mz/fs"
-import rpc from "./rpc"
+import { makeDoSteps, DoSteps } from "./rpc"
 import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
 import   chalk  from "chalk"
@@ -22,7 +22,7 @@ export const fromOBJECT = async (script: Object) => {
     let page: Page = pages[0]
 
 
-    const doSteps: Object = rpc(browser, logger)
+    const doSteps: DoSteps = makeDoSteps(browser, logger)
     // logger("doSteps", doSteps)
 
     let func: Function

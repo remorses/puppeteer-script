@@ -8,10 +8,11 @@ const devices = { ...puppeteerDevices, ...myDevices }
 
 const WORKING_DIR = dirname((<any>require).main.filename)
 
+export interface DoSteps {
+  [key: string]: (page: Page) => (any) => Page | Promise<Page>
+}
 
-export default (browser: Browser, logger: any, ) => ({
-
-
+export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
 
   // TODO create interface
   "click": (page: Page) => async (arg: ObjArg | string) => {
@@ -195,7 +196,6 @@ const emulateBrowser = async (browser: Browser, device: string) => {
 }
 
 
-// TODO regex
 const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
   // logger(regex)
   await page.waitForSelector(selector)
