@@ -1,6 +1,4 @@
 
 
 
-const fromJSON = () => ""
-
-export default fromJSON
+export const fromJSON = () => ""

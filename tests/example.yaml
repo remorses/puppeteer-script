@@ -12,13 +12,13 @@ do:
   - click: { selector: 'input[name="fullName"]', content: /.*/ }
   - wait: 0
   - inject:  "./jquery.js"
-  - evaluate: console.error("fuckkk")
+  - evaluate: console.log("fuckkk")
   - echo:    doing good job
-  - new page: "google.com"
+  - new page: https://google.com
+  - wait: 2000
   - target page: -2 # pass on page number -2, last before this, instgram
   - wait: 0
   - target page: -1 # pass to google
-  - wait: 0
   - close page: -1 # close current page, google
   - wait:    100
   - screenshot: "./screen.jpg"

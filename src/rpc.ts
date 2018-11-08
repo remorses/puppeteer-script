@@ -1,13 +1,15 @@
 import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
-import { join, resolve } from "path"
+import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 const puppeteerDevices = require('puppeteer/DeviceDescriptors');
 const myDevices = require("./devices")
 const devices = { ...puppeteerDevices, ...myDevices }
 
+const WORKING_DIR = dirname((<any>require).main.filename)
 
-export default (browser: Browser,  logger: any, ) => ({
+
+export default (browser: Browser, logger: any, ) => ({
 
   "executable": (x: any) => x, // do nothing, already handled
 
@@ -24,9 +26,9 @@ export default (browser: Browser,  logger: any, ) => ({
     "click": (page: Page) => async (arg: ObjArg | string) => {
       if (typeof arg === "object") {
         const { selector = "", containing = "", ...options } = arg;
-        logger(selector)
+        // logger(selector)
         const element = await await (findElement(page, <string>selector, <string>containing))
-        logger(element)
+        // logger(element)
         if (!element) throw new Error("no element")
         await element.click()
       } else {
@@ -66,35 +68,43 @@ export default (browser: Browser,  logger: any, ) => ({
     },
 
     "wait": (page: Page) => async (time = 0) => {
-      time ? await page.waitFor(time) :  await waitForLoad(page)
+      time ? await page.waitFor(time) : await waitForLoad(page)
       return page
     },
 
     "echo": (page: Page) => (text = "") => {
-      logger(text)
+      logger(text + "\n")
       return page
     },
 
     "close page": (page: Page) => async (index = -1) => {
-      const pages = await browser.pages()
+      let pages = await browser.pages()
+      const length = pages.length
 
       if (index < 0) {
-        const newPage = await changedPage(browser)
-        pages[pages.length + index].close()
-        return await newPage
+        pages[length + index].close({ runBeforeUnload: true })
+        while (pages.length >= length) {
+          pages = await browser.pages()
+          setTimeout(() => "wait", 200)
+        }
+        return await pages[length - 1].bringToFront()
 
       } else {
-        const newPage = await changedPage(browser)
-        await pages[index].close()
-        return await newPage
+        pages[index].close({ runBeforeUnload: true })
+        while (pages.length >= length) {
+          pages = await browser.pages()
+          setTimeout(() => "wait", 200)
+        }
+        return await pages[length - 1].bringToFront()
       }
     },
 
     "target page": (page: Page) => async (index = -1) => {
+      await page.waitFor(100)
       const pages = await browser.pages()
       if (index < 0) {
-         pages[pages.length + index].bringToFront()
-         return pages[pages.length + index]
+        pages[pages.length + index].bringToFront()
+        return pages[pages.length + index]
       } else {
         await pages[index].bringToFront();
         return pages[index]
@@ -102,13 +112,13 @@ export default (browser: Browser,  logger: any, ) => ({
     },
 
     "screenshot": (page: Page) => (file: "./screen.jpg") => {
-      let path = resolve(file)
+      let path = join(WORKING_DIR, file)
       page.screenshot({ path })
       return page
     },
 
     "inject": (page: Page) => (path: "./file.js") => {
-      const file = fs.readFileSync(resolve(path), 'utf8')
+      const file = fs.readFileSync(join(WORKING_DIR, path), 'utf8')
       page.evaluate(file)
       return page
     },
@@ -120,19 +130,19 @@ export default (browser: Browser,  logger: any, ) => ({
 
 
     "set user agent": (page: Page) => (path: "./file.js") => {
-      const file = fs.readFileSync(resolve(path), 'utf8')
+      const file = fs.readFileSync(join(WORKING_DIR, path), 'utf8')
       page.setUserAgent(file)
       return page
     },
     "set cookies": (page: Page) => (path: "./file.js") => {
-      const file = require(resolve(path))
+      const file = require(join(WORKING_DIR, path))
       page.setCookie(...file)
       return page
     },
 
     "export html": (page: Page) => async (path: "./file.html") => {
       const content = await page.content()
-      await fs.writeFile(resolve(path), content)
+      await fs.writeFile(join(WORKING_DIR, path), content)
       return page
     },
 
@@ -149,11 +159,13 @@ export default (browser: Browser,  logger: any, ) => ({
 })
 
 
-const waitForLoad = (page: Page) => new Promise((resolve) => {
-  page.on('request', (req) => {
-    setTimeout(() => resolve("timeOut"), 600)
+const waitForLoad = (page: Page) => new Promise((res) => {
+  page.once('request', (req) => {
+    setTimeout(() => page.once("request",
+      () => setTimeout(
+        () => res(), 600)), 600)
   })
-  setTimeout(() => resolve("timeOut"), 2500)
+  setTimeout(() => res(), 2500)
 })
 
 
@@ -188,14 +200,14 @@ const emulateBrowser = async (browser: Browser, device: string) => {
 
 // TODO regex
 const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
-  console.log(regex)
+  // console.log(regex)
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
-  console.log(elements.length)
-   if (elements.length < 1) return null
+  // console.log(elements.length)
+  if (elements.length < 1) return null
   for (let element of elements) {
     let inner: string = (await getContent(element)) || ""
-    console.log("inner: " + inner)
+    // console.log("inner: " + inner)
     // if (!inner) return null
     //  debug(inner.trim())
     if (new RegExp(regex).test(inner.trim())) {
@@ -209,7 +221,7 @@ const findElement = async (page: Page, selector = "div", regex: string = "/.*/",
 
 const getContent = async (element: ElementHandle): Promise<string> => {
   const inner = await element.getProperty("textContent")
-  if (!inner) console.log(inner); return ""
+  if (!inner) return ""
   return (await inner.jsonValue()).trim()
 }
 

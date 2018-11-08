@@ -1,6 +1,8 @@
-import fromYAML from "./fromYAML"
+import {fromYAML} from "./fromYAML"
+import {fromJSON} from "./fromJSON"
 
 
 export {
-  fromYAML
+  fromYAML,
+  fromJSON
 }

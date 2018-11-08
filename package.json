@@ -19,9 +19,13 @@
   },
   "homepage": "https://github.com/remorses/puppeteer-script#readme",
   "dependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/colors": "^1.2.1",
     "@types/mz": "0.0.32",
     "@types/puppeteer": "^1.10.0",
     "@types/yaml": "^1.0.0",
+    "chalk": "^2.4.1",
+    "colors": "^1.3.2",
     "debug": "^4.1.0",
     "http": "0.0.0",
     "mz": "^2.7.0",

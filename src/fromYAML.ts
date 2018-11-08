@@ -2,15 +2,19 @@
 import rpc from "./rpc"
 import * as YAML from "yaml"
 import * as fs from "mz/fs"
-import { join, resolve, dirname } from "path"
+import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
-
+import   chalk  from "chalk"
 const debug = require("debug")
 
+const { red, bold } = chalk
+
 const WORKING_DIR = dirname((<any>require).main.filename)
-// console.log(WORKING_DIR)
- const fromYAML = async (path: string) => {
-  const file = await fs.readFile(path, 'utf8')
+
+
+console.log("WORKING_DIR:", WORKING_DIR)
+export const fromYAML = async (path: string) => {
+  const file = await fs.readFile(join(WORKING_DIR, path), 'utf8')
   const script = YAML.parse(file)
   // console.log("script:", script.do)
   const executablePath: string = script["executable"] || ""
@@ -33,18 +37,21 @@ const WORKING_DIR = dirname((<any>require).main.filename)
 
       for (let step of script.do) {
         key = Object.keys(step)[0]
-        value = step[key]
+        value = step[key];
 
-        console.log("pages: " + (await browser.pages()))
+        const pagesLogs = (await browser.pages())
+          .map((x: Page) => x.url())
+          .map((x, i) => i + ". " + x + "\n")
+        console.log("pages:\n" ,... pagesLogs)
 
         func = await (<any>functionsObject)[key]
         if (!func) console.error(key, "still not implemented")
 
         page = await (await func(page)(value))
-        // .catch((e: Error) => console.error("error in", key, ":", value, "\n", e))
       }
+
     } catch (e) {
-      console.error("error in", key, ":", value, "\n", e["message"].trim())
+      console.error(red("error in " + bold(key.toString().toUpperCase()) + ": " + bold(value.toString().toUpperCase()) + "\n" + e["message"].trim()))
     }
 
     return
@@ -52,8 +59,5 @@ const WORKING_DIR = dirname((<any>require).main.filename)
 
   })
 
-  console.log("done")
+  console.log(bold("done"))
 }
-
-
-export default fromYAML
