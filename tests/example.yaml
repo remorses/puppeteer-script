@@ -1,6 +1,7 @@
 
-headless: false
-# abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
+headless: true
+abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
+executable: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 do:
   - go to:   "https://www.facebook.com/"
