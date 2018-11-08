@@ -1,7 +1,4 @@
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
-const puppeteerDevices = require('puppeteer/DeviceDescriptors');
-const myDevices = require("./devices")
-const devices = { ...puppeteerDevices, ...myDevices }
 
 
 export const waitForLoad = (page: Page) => new Promise((res) => {
@@ -14,7 +11,7 @@ export const waitForLoad = (page: Page) => new Promise((res) => {
 })
 
 
- const abortPageRequests = async (page: Page, types = []) => {
+const abortPageRequests = async (page: Page, types = []) => {
   await page.setRequestInterception(true);
   page.on('request', req => {
     if (types.some(x => x === req.resourceType()))
@@ -28,18 +25,6 @@ export const abortBrowserRequests = async (browser: Browser, types = []) => {
   const pages = await browser.pages()
   pages.forEach((page: Page) => abortPageRequests(page, types))
   browser.on('targetcreated', async (target: Target) => abortPageRequests(await target.page(), types))
-}
-
-// TODO add other desktop devices
- const emulatePage = async (page: Page, device: string) => {
-  page.emulate(devices[device])
-}
-
-// TODO add other desktop devices
-export const emulateBrowser = async (browser: Browser, device: string) => {
-  const pages = await browser.pages()
-  pages.forEach((page: Page) => emulatePage(page, device))
-  browser.on('targetcreated', async (target: Target) => emulatePage(await target.page(), device))
 }
 
 

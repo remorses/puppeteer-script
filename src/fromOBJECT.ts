@@ -1,10 +1,11 @@
 
 import * as YAML from "yaml"
 import * as fs from "mz/fs"
-import { makeDoSteps, DoSteps } from "./rpc"
 import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
 import   chalk  from "chalk"
+import { makeDoSteps, DoSteps } from "./rpc"
+import { emulate } from "./emulate"
 const logger = require("debug")("script")
 const { red, bold, bgRed, white  } = chalk
 const { DEBUG = "" } = process.env
