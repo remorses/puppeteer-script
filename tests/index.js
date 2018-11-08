@@ -1,4 +1,3 @@
-
 const { fromYAML } = require("../lib/fromYAML");
 const path = require("path");
 
