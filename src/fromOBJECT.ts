@@ -5,7 +5,7 @@ import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
 import   chalk  from "chalk"
 import { makeDoSteps, DoSteps } from "./rpc"
-import { emulate } from "./emulate"
+import { makeEmulate } from "./emulate"
 const logger = require("debug")("script")
 const { red, bold, bgRed, white  } = chalk
 const { DEBUG = "" } = process.env
@@ -16,9 +16,13 @@ export const fromOBJECT = async (script: Object) => {
   // logger("script:", script.do)
   const executablePath: string = script["executable"] || ""
   const headless: boolean = !!script["headless"]
+  const [emulate, options] = makeEmulate(script["emulate"] || "")
 
 
-  await launch({ headless, executablePath }).then(async (browser: Browser) => {
+  await launch({ headless, executablePath, ...options }).then(async (browser: Browser) => {
+
+    emulate(browser)
+
     const pages = await browser.pages()
     let page: Page = pages[0]
 

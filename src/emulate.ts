@@ -1,20 +1,23 @@
 
 
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
-const puppeteerDevices = require('puppeteer/DeviceDescriptors');
-const myDevices = require("./devices")
-const devices = { ...puppeteerDevices, ...myDevices }
-
+const puppeteerDescriptors = require('puppeteer/DeviceDescriptors');
+const { descriptors, options } = require("./devices")
+const devices = { ...puppeteerDescriptors, ...descriptors }
 
 
 // TODO add other desktop devices
 const emulatePage = async (page: Page, device: string) => {
-  page.emulate(devices[device])
+  await page.emulate(devices[device])
+
 }
 
 // TODO add other desktop devices
-export const emulate = async (browser: Browser, device: string) => {
+export const makeEmulate = (device: string) => [async (browser: Browser, ) => {
+  if (!descriptors[device]) return false
   const pages = await browser.pages()
   pages.forEach((page: Page) => emulatePage(page, device))
-  browser.on('targetcreated', async (target: Target) => emulatePage(await target.page(), device))
-}
+  await browser.on('targetcreated', async (target: Target) => await emulatePage(await target.page(), device))
+  return true
+}, options[device] || {}
+]
