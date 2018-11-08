@@ -87,7 +87,7 @@ export default (browser: Browser, logger: any, ) => ({
           pages = await browser.pages()
           await page.waitFor(100)
         }
-        return await pages[length - 1].bringToFront()
+        return await pages[pages.length - 1].bringToFront()
 
       } else {
         pages[index].close({ runBeforeUnload: true })
@@ -95,7 +95,7 @@ export default (browser: Browser, logger: any, ) => ({
           pages = await browser.pages()
           await page.waitFor(100)
         }
-        return await pages[length - 1].bringToFront()
+        return await pages[pages.length - 1].bringToFront()
       }
     },
 
