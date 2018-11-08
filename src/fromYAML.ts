@@ -42,10 +42,11 @@ export const fromYAML = async (path: string) => {
 
         key = Object.keys(step)[0]
         value = step[key];
+        console.log(( "\n" + "Executing " + bold("'" + key  + "'" + " : " + "'" + value + "'" ) ))
 
 
 
-        if (DEBUG.match(/script*/)) {
+        if (DEBUG.match(/script*/i)) {
           const pagesLogs = (await browser.pages())
             .map((x: Page) => x.url())
             .map((x, i) => i + ". " + x + "\n")
@@ -61,7 +62,7 @@ export const fromYAML = async (path: string) => {
       }
 
     } catch (e) {
-      console.error(red("error in " + bold(key.toString() + ": " + value.toString()) + " step" + "\n" + e["message"].trim()))
+      console.error(red("Error in " + bold(key + ": " + value) + " step" + "\n" + e["message"].trim()))
       process.exit(1)
 
     }
