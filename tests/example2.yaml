@@ -4,10 +4,10 @@ abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
 
 do:
   - wait: 100
-  - go to:   "https://www.instagram.com/accounts/emailsignup/"
+  - go to:   https://www.instagram.com/accounts/emailsignup/
   - wait: 0
   - click:   'input[name="emailOrPhone"]'
-  - type:    "username" # keyboard.type
+  - type:    username # keyboard.type
   - wait: 0
   - click: { selector: 'input[name="fullName"]', content: /.*/ }
   - wait: 0
@@ -21,5 +21,5 @@ do:
   - target page: -1 # pass to google
   - close page: -1 # close current page, google
   - wait:    100
-  - screenshot: "./screen.jpg"
-  - export html: "./file.html"
+  - screenshot: "./artifacts/screen.jpg"
+  - export html: "./artifacts/file.html"

@@ -12,5 +12,5 @@ do:
   - target page: -2 # pass on page number -2, last before this, instgram
   - target page: -1 # pass to google
   - close page: -1 # close current page, google
-  - screenshot: "./screen.jpg"
-  - export html: "./file.html"
+  - screenshot: "./artifacts/screen.jpg"
+  - export html: "./artifacts/file.html"

@@ -6,17 +6,19 @@ import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
 import   chalk  from "chalk"
 const debug = require("debug")
+const logger = debug("script")
 
-const { red, bold } = chalk
+const { red, bold, bgRed, white  } = chalk
 
 const WORKING_DIR = dirname((<any>require).main.filename)
+const { DEBUG = "" } = process.env
 
-
-console.log("WORKING_DIR:", WORKING_DIR)
+// logger("WORKING_DIR:", WORKING_DIR)
 export const fromYAML = async (path: string) => {
   const file = await fs.readFile(join(WORKING_DIR, path), 'utf8')
   const script = YAML.parse(file)
-  // console.log("script:", script.do)
+
+  // logger("script:", script.do)
   const executablePath: string = script["executable"] || ""
   const headless: boolean = !!script["headless"]
 
@@ -26,8 +28,8 @@ export const fromYAML = async (path: string) => {
     let page: Page = pages[0]
 
 
-    const functionsObject: Object = rpc(browser, console.log).do
-    // console.log("functionObject", functionsObject)
+    const functionsObject: Object = rpc(browser, logger).do
+    // logger("functionObject", functionsObject)
 
     let func: Function
     let key: string = ""
@@ -39,19 +41,25 @@ export const fromYAML = async (path: string) => {
         key = Object.keys(step)[0]
         value = step[key];
 
-        const pagesLogs = (await browser.pages())
-          .map((x: Page) => x.url())
-          .map((x, i) => i + ". " + x + "\n")
-        console.log("pages:\n" ,... pagesLogs)
+
+
+        if (DEBUG.match(/script*/)) {
+          const pagesLogs = (await browser.pages())
+            .map((x: Page) => x.url())
+            .map((x, i) => i + ". " + x + "\n")
+          logger("pages:\n" ,... pagesLogs)
+        }
+
+
 
         func = await (<any>functionsObject)[key]
-        if (!func) console.error(key, "still not implemented")
+        if (!func) console.error(red( bold(key) +  " still not implemented"))
 
         page = await (await func(page)(value))
       }
 
     } catch (e) {
-      console.error(red("error in " + bold(key.toString().toUpperCase()) + ": " + bold(value.toString().toUpperCase()) + "\n" + e["message"].trim()))
+      console.error(red("error in " + bold(key.toString() + ": " + value.toString()) + " step" + "\n" + e["message"].trim()))
     }
 
     return
@@ -59,5 +67,5 @@ export const fromYAML = async (path: string) => {
 
   })
 
-  console.log(bold("done"))
+  logger(bold("done"))
 }
