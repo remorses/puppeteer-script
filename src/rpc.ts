@@ -79,24 +79,29 @@ export default (browser: Browser, logger: any, ) => ({
 
     "close page": (page: Page) => async (index = -1) => {
       let pages = await browser.pages()
-      const length = pages.length
+      const length = [...pages].length
 
       if (index < 0) {
-        pages[length + index].close({ runBeforeUnload: true })
+        pages[length + index].close()
         while (pages.length >= length) {
+          console.log(pages.length + " >= " + length)
+          console.log(pages.length + " >= " + length)
           pages = await browser.pages()
           await page.waitFor(100)
         }
-        return await pages[pages.length - 1].bringToFront()
+        const newPage = await pages[pages.length - 1]
+        newPage.bringToFront()
+        return newPage
 
       } else {
-        pages[index].close({ runBeforeUnload: true })
+        pages[index].close()
         while (pages.length >= length) {
           pages = await browser.pages()
           await page.waitFor(100)
         }
-        return await pages[pages.length - 1].bringToFront()
-      }
+        const newPage = await pages[pages.length - 1]
+        newPage.bringToFront()
+        return newPage      }
     },
 
     "target page": (page: Page) => async (index = -1) => {
