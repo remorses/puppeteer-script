@@ -1,6 +1,6 @@
 import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
-import { join } from "path"
+import { join, resolve } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 const puppeteerDevices = require('puppeteer/DeviceDescriptors');
 const myDevices = require("./devices")
@@ -25,7 +25,7 @@ export default (browser: Browser,  logger: any, ) => ({
       if (typeof arg === "object") {
         const { selector = "", containing = "", ...options } = arg;
         logger(selector)
-        const element = await findElement(page, <string>selector, <string>containing)
+        const element = await await (findElement(page, <string>selector, <string>containing))
         logger(element)
         if (!element) throw new Error("no element")
         await element.click()
@@ -53,7 +53,7 @@ export default (browser: Browser,  logger: any, ) => ({
     },
 
     "new page": (page: Page) => (url = "") => {
-      let _page: Page
+      let _page: Page = page
       browser.newPage()
         .then(page => _page = page)
         .then(page => page.goto(url))
@@ -101,13 +101,14 @@ export default (browser: Browser,  logger: any, ) => ({
       }
     },
 
-    "screenshot": (page: Page) => (path: "./screen.jpg") => {
+    "screenshot": (page: Page) => (file: "./screen.jpg") => {
+      let path = resolve(file)
       page.screenshot({ path })
       return page
     },
 
     "inject": (page: Page) => (path: "./file.js") => {
-      const file = fs.readFileSync(join(__dirname, path), 'utf8')
+      const file = fs.readFileSync(resolve(path), 'utf8')
       page.evaluate(file)
       return page
     },
@@ -119,19 +120,19 @@ export default (browser: Browser,  logger: any, ) => ({
 
 
     "set user agent": (page: Page) => (path: "./file.js") => {
-      const file = fs.readFileSync(join(__dirname, path), 'utf8')
+      const file = fs.readFileSync(resolve(path), 'utf8')
       page.setUserAgent(file)
       return page
     },
     "set cookies": (page: Page) => (path: "./file.js") => {
-      const file = require(path)
+      const file = require(resolve(path))
       page.setCookie(...file)
       return page
     },
 
     "export html": (page: Page) => async (path: "./file.html") => {
       const content = await page.content()
-      await fs.writeFile(path, content)
+      await fs.writeFile(resolve(path), content)
       return page
     },
 
@@ -186,14 +187,16 @@ const emulateBrowser = async (browser: Browser, device: string) => {
 
 
 // TODO regex
-const findElement = async (page: Page, selector = "div", regex: string = "/.*|\n/", ): Promise<ElementHandle | null> => {
+const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
+  console.log(regex)
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
+  console.log(elements.length)
    if (elements.length < 1) return null
   for (let element of elements) {
-    let inner = await getContent(element)
-    console.log("inner", inner)
-    if (!inner) return null
+    let inner: string = (await getContent(element)) || ""
+    console.log("inner: " + inner)
+    // if (!inner) return null
     //  debug(inner.trim())
     if (new RegExp(regex).test(inner.trim())) {
       // debug(inner, ", findElement");
@@ -204,9 +207,9 @@ const findElement = async (page: Page, selector = "div", regex: string = "/.*|\n
 }
 
 
-const getContent = async (element: ElementHandle): Promise<string | null> => {
+const getContent = async (element: ElementHandle): Promise<string> => {
   const inner = await element.getProperty("textContent")
-  if (!inner) return null
+  if (!inner) console.log(inner); return ""
   return (await inner.jsonValue()).trim()
 }
 
