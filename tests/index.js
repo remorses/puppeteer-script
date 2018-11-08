@@ -1,5 +1,5 @@
 
-const { fromYAML } = require("../lib/fromYAML");
+const { fromYAML } = require("../lib");
 const path = require("path");
 
 // console.log("current dir:", __dirname);
