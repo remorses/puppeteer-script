@@ -9,7 +9,7 @@ const debug = require("debug")
 
 const WORKING_DIR = dirname((<any>require).main.filename)
 // console.log(WORKING_DIR)
-export const fromYAML = async (path: string) => {
+export default const fromYAML = async (path: string) => {
   const file = await fs.readFile(path, 'utf8')
   const script = YAML.parse(file)
   // console.log("script:", script.do)
