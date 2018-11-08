@@ -85,7 +85,7 @@ export default (browser: Browser, logger: any, ) => ({
         pages[length + index].close({ runBeforeUnload: true })
         while (pages.length >= length) {
           pages = await browser.pages()
-          setTimeout(() => "wait", 200)
+          await page.waitFor(100)
         }
         return await pages[length - 1].bringToFront()
 
@@ -93,7 +93,7 @@ export default (browser: Browser, logger: any, ) => ({
         pages[index].close({ runBeforeUnload: true })
         while (pages.length >= length) {
           pages = await browser.pages()
-          setTimeout(() => "wait", 200)
+          await page.waitFor(100)
         }
         return await pages[length - 1].bringToFront()
       }
