@@ -3,7 +3,7 @@ import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 import { waitForLoad, findElement } from "./helpers"
-
+import { abort } from "./abort"
 
 
 

@@ -6,9 +6,11 @@ import { launch, Browser, Page } from "puppeteer";
 import   chalk  from "chalk"
 import { makeDoSteps, DoSteps } from "./rpc"
 import { makeEmulate } from "./emulate"
+import { abort } from "./abort"
 const logger = require("debug")("script")
 const { red, bold, bgRed, white  } = chalk
 const { DEBUG = "" } = process.env
+
 
 // logger("WORKING_DIR:", WORKING_DIR)
 export const fromOBJECT = async (script: Object) => {
@@ -16,12 +18,15 @@ export const fromOBJECT = async (script: Object) => {
   // logger("script:", script.do)
   const executablePath: string = script["executable"] || ""
   const headless: boolean = !!script["headless"]
+  const requestsToAbort = script["abort"] || []
   const [emulate, options] = makeEmulate(script["emulate"] || "")
 
 
   await launch({ headless, executablePath, ...options }).then(async (browser: Browser) => {
 
-    emulate(browser)
+    await emulate(browser)
+
+    await abort(browser, requestsToAbort)
 
     const pages = await browser.pages()
     let page: Page = pages[0]

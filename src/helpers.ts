@@ -11,22 +11,6 @@ export const waitForLoad = (page: Page) => new Promise((res) => {
 })
 
 
-const abortPageRequests = async (page: Page, types = []) => {
-  await page.setRequestInterception(true);
-  page.on('request', req => {
-    if (types.some(x => x === req.resourceType()))
-      req.abort();
-    else
-      req.continue();
-  });
-}
-
-export const abortBrowserRequests = async (browser: Browser, types = []) => {
-  const pages = await browser.pages()
-  pages.forEach((page: Page) => abortPageRequests(page, types))
-  browser.on('targetcreated', async (target: Target) => abortPageRequests(await target.page(), types))
-}
-
 
 export const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
   // logger(regex)
