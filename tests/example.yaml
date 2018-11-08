@@ -1,11 +1,11 @@
 
-headless: true
-abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
+headless: false
+# abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
 
 do:
-  - go to:   "https://www.instagram.com/accounts/emailsignup/"
+  - go to:   "https://www.facebook.com/"
   - wait: 0
-  - click:   'input[name="emailOrPhone"]'
+  - click:   'input'
   - type:    "username" # keyboard.type
   - new page: https://google.com
   - wait: 0

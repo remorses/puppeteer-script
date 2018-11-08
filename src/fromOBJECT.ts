@@ -4,7 +4,7 @@ import * as fs from "mz/fs"
 import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
 import   chalk  from "chalk"
-import { makeDoSteps, DoSteps } from "./rpc"
+import { makeDoSteps, DoSteps } from "./doSteps"
 import { makeEmulate } from "./emulate"
 import { abort } from "./abort"
 const logger = require("debug")("script")
@@ -30,7 +30,6 @@ export const fromOBJECT = async (script: Object) => {
 
     const pages = await browser.pages()
     let page: Page = pages[0]
-
 
     const doSteps: DoSteps = makeDoSteps(browser, logger)
     // logger("doSteps", doSteps)

@@ -11,5 +11,4 @@ export const fromJSON = async (path: string) => {
   const script = JSON.parse(file)
   await fromOBJECT(script)
 
-
 }

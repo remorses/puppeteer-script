@@ -6,7 +6,7 @@ import { fromOBJECT } from "./fromOBJECT"
 
 const WORKING_DIR = dirname((<any>require).main.filename)
 
-export const fromJSON = async (path: string) => {
+export const fromYAML = async (path: string) => {
 
   const file = await fs.readFile(join(WORKING_DIR, path), 'utf8')
   const script = YAML.parse(file)

@@ -3,7 +3,6 @@ import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 import { waitForLoad, findElement } from "./helpers"
-import { abort } from "./abort"
 
 
 
@@ -17,16 +16,19 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
 
   // TODO create interface
   "click": (page: Page) => async (arg: scriptArgument | string) => {
+
+    let selector , containing
     if (typeof arg === "object") {
-      const { selector = "", containing = "", ...options } = arg;
-      // logger(selector)
-      const element = await await (findElement(page, <string>selector, <string>containing))
-      // logger(element)
-      if (!element) throw new Error("no element")
-      await element.click()
-    } else {
-      await page.click(arg)
+      selector = arg["selector"] || ""
+      containing = arg["containing"] || "";
     }
+
+    // logger(selector)
+    const element = await (await (findElement(page, <string>selector, <string>containing)))
+    // logger(element)
+    if (!element) throw new Error("no element found contining " + containing)
+    await element.click()
+
     return page
   },
 
