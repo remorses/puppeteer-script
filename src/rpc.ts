@@ -54,9 +54,9 @@ export default (browser: Browser, logger: any, ) => ({
       return page
     },
 
-    "new page": (page: Page) => (url = "") => {
+    "new page": (page: Page) => async (url = "") => {
       let _page: Page = page
-      browser.newPage()
+      await browser.newPage()
         .then(page => _page = page)
         .then(page => page.goto(url))
       return _page

@@ -15,7 +15,7 @@ do:
   - evaluate: console.log("fuckkk")
   - echo:    doing good job
   - new page: https://google.com
-  - wait: 2000
+  - wait: 100
   - target page: -2 # pass on page number -2, last before this, instgram
   - wait: 0
   - target page: -1 # pass to google
