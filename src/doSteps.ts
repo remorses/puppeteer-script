@@ -2,9 +2,10 @@ import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
-const puppeteerDevices = require('puppeteer/DeviceDescriptors');
-const myDevices = require("./devices")
-const devices = { ...puppeteerDevices, ...myDevices }
+import { waitForLoad, findElement } from "./helpers"
+
+
+
 
 const WORKING_DIR = dirname((<any>require).main.filename)
 
@@ -15,7 +16,7 @@ export interface DoSteps {
 export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
 
   // TODO create interface
-  "click": (page: Page) => async (arg: ObjArg | string) => {
+  "click": (page: Page) => async (arg: scriptArgument | string) => {
     if (typeof arg === "object") {
       const { selector = "", containing = "", ...options } = arg;
       // logger(selector)
@@ -29,7 +30,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     return page
   },
 
-  "type": (page: Page) => async (arg: ObjArg | string) => {
+  "type": (page: Page) => async (arg: scriptArgument | string) => {
     if (typeof arg === "object") {
       const { selector, containing, ...options } = arg;
       const element = await findElement(page, <string>selector, <string>containing)
@@ -157,90 +158,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
 })
 
 
-const waitForLoad = (page: Page) => new Promise((res) => {
-  page.once('request', (req) => {
-    setTimeout(() => page.once("request",
-      () => setTimeout(
-        () => res(), 600)), 600)
-  })
-  setTimeout(() => res(), 2500)
-})
 
-
-const abortPageRequests = async (page: Page, types = []) => {
-  await page.setRequestInterception(true);
-  page.on('request', req => {
-    if (types.some(x => x === req.resourceType()))
-      req.abort();
-    else
-      req.continue();
-  });
-}
-
-const abortBrowserRequests = async (browser: Browser, types = []) => {
-  const pages = await browser.pages()
-  pages.forEach((page: Page) => abortPageRequests(page, types))
-  browser.on('targetcreated', async (target: Target) => abortPageRequests(await target.page(), types))
-}
-
-// TODO add other desktop devices
-const emulatePage = async (page: Page, device: string) => {
-  page.emulate(devices[device])
-}
-
-// TODO add other desktop devices
-const emulateBrowser = async (browser: Browser, device: string) => {
-  const pages = await browser.pages()
-  pages.forEach((page: Page) => emulatePage(page, device))
-  browser.on('targetcreated', async (target: Target) => emulatePage(await target.page(), device))
-}
-
-
-const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
-  // logger(regex)
-  await page.waitForSelector(selector)
-  const elements: ElementHandle[] = await page.$$(selector)
-  // logger(elements.length)
-  if (elements.length < 1) return null
-  for (let element of elements) {
-    let inner: string = (await getContent(element)) || ""
-    // logger("inner: " + inner)
-    // if (!inner) return null
-    //  debug(inner.trim())
-    if (new RegExp(regex).test(inner.trim())) {
-      // debug(inner, ", findElement");
-      return element
-    }
-  }
-  return null
-}
-
-
-const getContent = async (element: ElementHandle): Promise<string> => {
-  const inner = await element.getProperty("textContent")
-  if (!inner) return ""
-  return (await inner.jsonValue()).trim()
-}
-
-
-export const getAttribute = async (page: Page, element: ElementHandle, attribute: string): Promise<string> => {
-  const value = await page.evaluate((element, attribute) => element.attribute, element, attribute);
-  return value
-}
-
-
-interface ObjArg {
+interface scriptArgument {
   [key: string]: string | number | boolean | RegExp
 }
-
-
-const changedPage = async (browser: Browser) => {
-  return new Promise(x =>
-    browser.on('targetchanged', async target => {
-      if (target.type() === 'page') {
-        x(await target.page())
-
-      }
-    })
-  );
-};
