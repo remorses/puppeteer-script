@@ -1,5 +1,5 @@
 
-headless: false
+headless: true
 abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
 
 do:
