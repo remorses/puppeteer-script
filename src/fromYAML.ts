@@ -38,6 +38,8 @@ export const fromYAML = async (path: string) => {
     try {
 
       for (let step of script.do) {
+
+
         key = Object.keys(step)[0]
         value = step[key];
 
@@ -60,6 +62,8 @@ export const fromYAML = async (path: string) => {
 
     } catch (e) {
       console.error(red("error in " + bold(key.toString() + ": " + value.toString()) + " step" + "\n" + e["message"].trim()))
+      process.exit(1)
+
     }
 
     return

@@ -84,8 +84,8 @@ export default (browser: Browser, logger: any, ) => ({
       if (index < 0) {
         pages[length + index].close()
         while (pages.length >= length) {
-          console.log(pages.length + " >= " + length)
-          console.log(pages.length + " >= " + length)
+          logger(pages.length + " >= " + length)
+          logger(pages.length + " >= " + length)
           pages = await browser.pages()
           await page.waitFor(100)
         }
@@ -205,14 +205,14 @@ const emulateBrowser = async (browser: Browser, device: string) => {
 
 // TODO regex
 const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
-  // console.log(regex)
+  // logger(regex)
   await page.waitForSelector(selector)
   const elements: ElementHandle[] = await page.$$(selector)
-  // console.log(elements.length)
+  // logger(elements.length)
   if (elements.length < 1) return null
   for (let element of elements) {
     let inner: string = (await getContent(element)) || ""
-    // console.log("inner: " + inner)
+    // logger("inner: " + inner)
     // if (!inner) return null
     //  debug(inner.trim())
     if (new RegExp(regex).test(inner.trim())) {
