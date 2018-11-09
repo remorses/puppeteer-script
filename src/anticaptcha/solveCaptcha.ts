@@ -1,9 +1,13 @@
+
+
+
 import { Browser, Page } from "puppeteer";
+import request from "request-promise-native"
+import tough from "tough-cookie"
 
 // check balance first
 const {
   ANTICAPTCHA_KEY,
-
   PROXY_ADDRESS,
   PROXY_PASS,
   PROXY_USER,
@@ -13,59 +17,118 @@ const {
 
 const anticaptcha: any = require('./anticaptcha')(ANTICAPTCHA_KEY);
 
-export const solveCaptcha = async (browser: Browser, page: Page, sitekey = "", { proxy = false, ...options }) => {
-  //recaptcha key from target website
-  anticaptcha.setWebsiteURL(await page.url());
-  anticaptcha.setWebsiteKey(sitekey);
 
-  //proxy access parameters
-  if (proxy) {
-    anticaptcha.setProxyType(PROXY_TYPE);
-    anticaptcha.setProxyAddress(PROXY_ADDRESS);
-    anticaptcha.setProxyPort(PROXY_PORT);
-    anticaptcha.setProxyLogin(PROXY_USER);
-    anticaptcha.setProxyPassword(PROXY_PASS);
+interface NoCaptcha {
+  websiteURL: string,
+  websiteKey: string,
+  websiteSToken: string,
+  userAgent: string,
+  cookies: string,
+  languagePool: string
+  callbackUrl?: string
+}
+
+interface NoCaptchaProxy extends NoCaptcha {
+  proxyType: string,
+  proxyAddress: string,
+  proxyPort: number,
+  proxyLogin: string,
+  proxyPassword: string,
+}
+
+const defaults: NoCaptcha = {
+  websiteURL: "",
+  websiteKey: "",
+  websiteSToken: "",
+  userAgent: "",
+  cookies: "",
+  languagePool: "en",
+  // callbackUrl: ""
+}
+
+
+const createNoCaptchaTask = (params) =>
+  async (options: NoCaptcha | NoCaptchaProxy = defaults) => {
+
+    const { clientKey, softId, hostname, port } = params
+
+    const postData = {
+      clientKey: clientKey,
+      task: { ...options, type: "NoCaptchaTask" },
+      softId: softId
+    }
+
+    const response = await request({
+      url: hostname + "/createTask",
+      port: port,
+      method: 'POST',
+      headers: {
+        'accept-encoding': 'gzip,deflate',
+        'content-type': 'application/json; charset=utf-8',
+        'accept': 'application/json',
+        'content-length': Buffer.byteLength(JSON.stringify(postData))
+      },
+      json: postData
+    })
+
+    return response["taskId"]
+
   }
 
-  //browser header parameters
-  anticaptcha.setUserAgent(await page.evaluate("navigator.userAgent"));
-  anticaptcha.setCookies(await page.cookies());
+const getBalance = async (params) => {
 
-  const balance = await getBalance
-  if (balance > 0) {
-    const taskId = await createTask
-    const solution = await getTaskSolution(taskId)
+  const { clientKey, softId, hostname, port } = params
+
+  const postData = {
+    clientKey,
   }
+
+  const response = await request({
+    url: hostname + "/getBalance",
+    port: port,
+    method: 'POST',
+    headers: {
+      'accept-encoding': 'gzip,deflate',
+      'content-type': 'application/json; charset=utf-8',
+      'accept': 'application/json',
+      'content-length': Buffer.byteLength(JSON.stringify(postData))
+    },
+    json: postData
+  })
+
+  return response["balance"]
+
 }
 
 
 
+const solveCaptcha = async (params, page) => {
+
+  const options {
+    websiteURL: await page.url(),
+    websiteKey: string,
+    websiteSToken: string,
+    userAgent: string,
+    cookies: string,
+    languagePool: string
+    callbackUrl?: string
+  }
+
+  const balance = await getBalance(params)
+  if (balance > 0) return (await createNoCaptchaTask(params))(options)
+
+}
 
 
 
-const getBalance: Promise<number> = new Promise((res, rej) => {
-  anticaptcha.getBalance(
-    (err, balance) => (err)
-      ? rej(err)
-      : res(balance))
-})
+const sessionCookie = new tough.Cookie({
+  key: 'some_key',
+  value: 'some_value',
+  domain: 'api.mydomain.com',
+  httpOnly: true,
+  maxAge: 31536000
+});
 
-const createTask: Promise<string> = new Promise((res, rej) => {
-  anticaptcha.createTask((err, taskId) => {
-    if (err) {
-      rej(err)
-    } else {
-      res(taskId)
-    }
-  })
-})
+var cookiejar = request.jar();
 
-const getTaskSolution: (a: string) => Promise<Object> = taskId => new Promise((res, rej) => {
-  anticaptcha.getTaskSolution(taskId, (err, taskSolution: any) => {
-    if (err) {
-      rej(err)
-    } else {
-      res(taskSolution)
-    }
-  })
-})
+cookiejar.setCookie(sessionCookie, 'https://api.mydomain.com');
