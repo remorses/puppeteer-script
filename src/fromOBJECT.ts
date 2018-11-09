@@ -3,12 +3,12 @@ import * as YAML from "yaml"
 import * as fs from "mz/fs"
 import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
-import   chalk  from "chalk"
+import chalk from "chalk"
 import { makeDoSteps, DoSteps } from "./doSteps"
 import { makeEmulate } from "./emulate"
 import { abort } from "./abort"
 const logger = require("debug")("script")
-const { red, bold, bgRed, white  } = chalk
+const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
 
 
@@ -20,9 +20,11 @@ export const fromOBJECT = async (script: Object) => {
   const headless: boolean = !!script["headless"]
   const requestsToAbort = script["abort"] || []
   const [emulate, options] = makeEmulate(script["emulate"] || "")
+  const args = script["args"] || []
+  const defaults = ['--no-sandbox', '--disable-setuid-sandbox']
+  const { width, height} = script["viewport"] || {width: 1000, height: 1000}
 
-
-  await launch({ headless, executablePath, ...options }).then(async (browser: Browser) => {
+  await launch({ headless, executablePath, ...options, args: [...defaults, ...args] , defaultViewport: {width, height}}).then(async (browser: Browser) => {
 
     await emulate(browser)
 
@@ -45,7 +47,7 @@ export const fromOBJECT = async (script: Object) => {
 
         key = Object.keys(step)[0]
         value = step[key];
-        console.log(( "\n" + "Executing " + bold("'" + key  + "'" + " : " +  JSON.stringify(value)  ) ))
+        console.log(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
 
 
 
@@ -53,13 +55,13 @@ export const fromOBJECT = async (script: Object) => {
           const pagesLogs = (await browser.pages())
             .map((x: Page) => x.url())
             .map((x, i) => i + ". " + x + "\n")
-          logger("pages:\n" ,... pagesLogs)
+          logger("pages:\n", ...pagesLogs)
         }
 
 
 
         func = await (<any>doSteps)[key]
-        if (!func) console.error(red( bold(key) +  " still not implemented"))
+        if (!func) console.error(red(bold(key) + " still not implemented"))
 
         page = await (await func(page)(value))
       }
