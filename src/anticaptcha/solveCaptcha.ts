@@ -1,7 +1,7 @@
 
 
 
-import { Browser, Page } from "puppeteer";
+import { Browser, Page, Cookie } from "puppeteer";
 import request from "request-promise-native"
 import tough from "tough-cookie"
 
@@ -102,16 +102,20 @@ const getBalance = async (params) => {
 
 
 
-const solveCaptcha = async (params, page) => {
+const solveCaptcha = async (params, page: Page, websiteKey) => {
 
-  const options {
+  const cookies = (await page.cookies())
+  .map(({name, value, domain, path, expires,  httpOnly, session, secure, sameSite }: Cookie) =>
+   new tough.Cookie({key: name, value, expires: new Date(expires * 1000 ) , domain, httpOnly, path, secure }) )
+
+  const options = {
     websiteURL: await page.url(),
-    websiteKey: string,
-    websiteSToken: string,
-    userAgent: string,
-    cookies: string,
-    languagePool: string
-    callbackUrl?: string
+    websiteKey,
+    websiteSToken,
+    userAgent: await page.evaluate("navigator.userAgent()"),
+    cookies: cookies,
+    languagePool: "en"
+    callbackUrl: string
   }
 
   const balance = await getBalance(params)
