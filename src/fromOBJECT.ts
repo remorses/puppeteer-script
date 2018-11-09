@@ -45,7 +45,7 @@ export const fromOBJECT = async (script: Object) => {
 
         key = Object.keys(step)[0]
         value = step[key];
-        console.log(( "\n" + "Executing " + bold("'" + key  + "'" + " : " + "'" + value + "'" ) ))
+        console.log(( "\n" + "Executing " + bold("'" + key  + "'" + " : " +  JSON.stringify(value)  ) ))
 
 
 

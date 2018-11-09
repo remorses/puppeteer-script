@@ -2,7 +2,7 @@ import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
-import { waitForLoad, findElement } from "./helpers"
+import { waitForLoad, findElement, waitForElement } from "./helpers"
 import { abort } from "./abort";
 import { redirect } from "./redirect";
 
@@ -22,17 +22,17 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     let selector, containing
     if (typeof arg === "object") {
       selector = arg["selector"] || ""
-      containing = arg["containing"] || "";
+      containing = arg["containing"] || "/.*/"
     } else {
       selector = arg
-      containing = ""
+      containing = "/.*/"
     }
 
     // logger(selector)
-    const element = await (await (findElement(page, <string>selector, <string>containing)))
-    // logger(element)
+    const element =  await findElement(page, selector, containing)
     if (!element) throw new Error("no element found contining " + containing)
-    await element.click()
+    await waitForElement(element)
+    await element.click({clickCount: 2})
 
     return page
   },

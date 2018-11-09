@@ -1,5 +1,5 @@
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
-
+const logger = console.log
 
 export const waitForLoad = (page: Page) => new Promise((res) => {
   page.once('request', (req) => {
@@ -13,17 +13,18 @@ export const waitForLoad = (page: Page) => new Promise((res) => {
 
 
 export const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
-  // logger(regex)
   await page.waitForSelector(selector)
+  logger(regex)
+  logger(eval(regex))
   const elements: ElementHandle[] = await page.$$(selector)
   // logger(elements.length)
   if (elements.length < 1) return null
   for (let element of elements) {
     let inner: string = (await getContent(element)) || ""
-    // logger("inner: " + inner)
+    logger("inner: " + inner)
     // if (!inner) return null
     //  debug(inner.trim())
-    if (new RegExp(regex).test(inner.trim())) {
+    if (eval(regex).test(inner.trim())) {
       // debug(inner, ", findElement");
       return element
     }
@@ -42,4 +43,38 @@ export const getContent = async (element: ElementHandle): Promise<string> => {
 export const getAttribute = async (page: Page, element: ElementHandle, attribute: string): Promise<string> => {
   const value = await page.evaluate((element, attribute) => element.attribute, element, attribute);
   return value
+}
+
+
+export const waitForElement = async (element: ElementHandle) => {
+  let isMoving = true
+  let box
+  let x = 0, newx
+  let y = 0, newy
+  let width = 0, newwidth
+  let height = 0, newheight
+  while (isMoving) {
+    logger(await getContent(element))
+    logger("x:", x, "y:", y)
+    logger("newx:", newx, "newy:", newy)
+    await element.focus()
+    box = await element.boundingBox()
+    newx = box["x"]
+    newy = box["y"]
+    newwidth = box["width"]
+    newheight = box["height"]
+    setTimeout(() => {
+      isMoving = (x !== newx) ||
+        (y !== newy) ||
+        (width !== newwidth) ||
+        (height !== newheight)
+      x = newx
+      y = newy
+      width = newwidth
+      height = newheight
+    }, 300)
+
+  }
+  logger("element is stationary now")
+  return element
 }

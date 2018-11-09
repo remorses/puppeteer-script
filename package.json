@@ -30,6 +30,7 @@
     "http": "0.0.0",
     "mz": "^2.7.0",
     "puppeteer": "^1.10.0",
+    "regex-parser": "^2.2.9",
     "ts-node": "^7.0.1",
     "typescript": "^3.1.6",
     "yaml": "^1.0.0"

@@ -1,24 +1,26 @@
 
-headless: false
+headless: true
 abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
 executable: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 do:
-  - go to:   "https://www.instagram.com/accounts/emailsignup/"
+  - go to:   "https://www.google.com/"
   - wait: 0
   - click:   'input[name="emailOrPhone"]'
-  - type:    "username@gmail.com" # keyboard.type
+  - type:    "usernamedfsfgshdfhdfgh@gmail.com" # keyboard.type
   - click:   input[name="fullName"]
   - type:    "bot Bots"
   - click:   input[name="username"]
-  - type:    "botnumber56747"
+  - type:    "botnusfgmber56747"
   - click:   input[name="password"]
   - type:    "qwerty77"
   - wait: 200
   - click:   span#react-root button[type="submit"]
-  - wait: 60000
-  - close page: -1 # close current page, google
-  - screenshot: "./artifacts/screen.jpg"
+  - wait: 300
+  - click: input[name="ageRadio"][value="above_18"]
+  - wait: 800
+  - click: {selector: button, containing: /Avanti/i }
+# - close page: -1 # close current page, google
 
   # - export html: "./artifacts/file.html"
   # - redirect:
