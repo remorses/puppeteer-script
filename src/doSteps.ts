@@ -19,10 +19,13 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
   // TODO create interface
   "click": (page: Page) => async (arg: scriptArgument | string) => {
 
-    let selector , containing
+    let selector, containing
     if (typeof arg === "object") {
       selector = arg["selector"] || ""
       containing = arg["containing"] || "";
+    } else {
+      selector = arg
+      containing = ""
     }
 
     // logger(selector)
@@ -41,7 +44,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
       if (!element) throw new Error("no element")
       await element.click()
     } else {
-      page.keyboard.type(arg)
+      await page.keyboard.type(arg)
     }
     return page
   },
@@ -87,7 +90,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
         await page.waitFor(100)
       }
       const newPage = await pages[pages.length - 1]
-      newPage.bringToFront()
+      if(newPage)  await newPage.bringToFront()
       return newPage
 
     } else {
@@ -97,7 +100,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
         await page.waitFor(100)
       }
       const newPage = await pages[pages.length - 1]
-      newPage.bringToFront()
+      if(newPage)  await newPage.bringToFront()
       return newPage
     }
   },
@@ -149,16 +152,16 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     return page
   },
 
-  "block": (page: Page) => async ({requests, responses, }) => {
-    const promises1 = requests.map(({to: url, types: types}) => abort(browser, types, url ))
-    const promises2 = responses.map(({from: url, types: types}) => redirect(browser, types, url ))
+  "block": (page: Page) => async ({ requests, responses, }) => {
+    const promises1 = requests.map(({ to: url, types: types }) => abort(browser, types, url))
+    const promises2 = responses.map(({ from: url, types: types }) => redirect(browser, types, url))
     await Promise.all([...promises1, ...promises2])
     return page
   },
 
-  "redirect": (page: Page) => async ({requests, responses, to}) => {
-    const promises1 = requests.map(({to: url, types: types}) => abort(browser, types, url ))
-    const promises2 = responses.map(({from: url, types: types}) => redirect(browser, types, url ))
+  "redirect": (page: Page) => async ({ requests, responses, to }) => {
+    const promises1 = requests.map(({ to: url, types: types }) => abort(browser, types, url))
+    const promises2 = responses.map(({ from: url, types: types }) => redirect(browser, types, url))
     await Promise.all([...promises1, ...promises2])
     return page
   },

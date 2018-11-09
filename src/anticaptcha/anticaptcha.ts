@@ -1,4 +1,3 @@
-"use strict";
 // var Anticaptcha = function(clientKey): any {
 //   return new function(clientKey: any): void {
 //     (<any>this).params = {

@@ -1,25 +1,31 @@
 
-headless: true
+headless: false
 abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
 executable: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 do:
-  - go to:   "https://www.facebook.com/"
+  - go to:   "https://www.instagram.com/accounts/emailsignup/"
   - wait: 0
-  - click:   'input'
-  - type:    "username" # keyboard.type
-  - new page: https://google.com
-  - wait: 0
-  - target page: -2 # pass on page number -2, last before this, instgram
-  - target page: -1 # pass to google
+  - click:   'input[name="emailOrPhone"]'
+  - type:    "username@gmail.com" # keyboard.type
+  - click:   input[name="fullName"]
+  - type:    "bot Bots"
+  - click:   input[name="username"]
+  - type:    "botnumber56747"
+  - click:   input[name="password"]
+  - type:    "qwerty77"
+  - wait: 200
+  - click:   span#react-root button[type="submit"]
+  - wait: 60000
   - close page: -1 # close current page, google
   - screenshot: "./artifacts/screen.jpg"
-  - export html: "./artifacts/file.html"
-  - redirect:
-      requests:
-        - {  to: google.com, types: [xhr] }
-        - {  to: google.com, types: [xhr] }
-      responses:
-        - { from, types, }
-      to: localhost:999
-      continue: true
+
+  # - export html: "./artifacts/file.html"
+  # - redirect:
+  #     requests:
+  #       - {  to: google.com, types: [xhr] }
+  #       - {  to: google.com, types: [xhr] }
+  #     responses:
+  #       - { from, types, }
+  #     to: localhost:999
+  #     continue: true
