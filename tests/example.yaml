@@ -15,3 +15,11 @@ do:
   - close page: -1 # close current page, google
   - screenshot: "./artifacts/screen.jpg"
   - export html: "./artifacts/file.html"
+  - redirect:
+      requests:
+        - {  to: google.com, types: [xhr] }
+        - {  to: google.com, types: [xhr] }
+      responses:
+        - { from, types, }
+      to: localhost:999
+      continue: true

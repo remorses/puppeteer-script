@@ -3,6 +3,8 @@ import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 import { waitForLoad, findElement } from "./helpers"
+import { abort } from "./abort";
+import { redirect } from "./redirect";
 
 
 
@@ -144,6 +146,20 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
   "export html": (page: Page) => async (path: "./file.html") => {
     const content = await page.content()
     await fs.writeFile(join(WORKING_DIR, path), content)
+    return page
+  },
+
+  "block": (page: Page) => async ({requests, responses, }) => {
+    const promises1 = requests.map(({to: url, types: types}) => abort(browser, types, url ))
+    const promises2 = responses.map(({from: url, types: types}) => redirect(browser, types, url ))
+    await Promise.all([...promises1, ...promises2])
+    return page
+  },
+
+  "redirect": (page: Page) => async ({requests, responses, to}) => {
+    const promises1 = requests.map(({to: url, types: types}) => abort(browser, types, url ))
+    const promises2 = responses.map(({from: url, types: types}) => redirect(browser, types, url ))
+    await Promise.all([...promises1, ...promises2])
     return page
   },
 
