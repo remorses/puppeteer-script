@@ -14,8 +14,8 @@ export const waitForLoad = (page: Page) => new Promise((res) => {
 
 export const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
   await page.waitForSelector(selector)
-  logger(regex)
-  logger(eval(regex))
+  // logger(regex)
+  // logger(eval(regex))
   const elements: ElementHandle[] = await page.$$(selector)
   // logger(elements.length)
   if (elements.length < 1) return null
@@ -54,9 +54,9 @@ export const waitForElement = async (element: ElementHandle) => {
   let width = 0, newwidth
   let height = 0, newheight
   while (isMoving) {
-    logger(await getContent(element))
-    logger("x:", x, "y:", y)
-    logger("newx:", newx, "newy:", newy)
+    // logger(await getContent(element))
+    // logger("x:", x, "y:", y)
+    // logger("newx:", newx, "newy:", newy)
     await element.focus()
     box = await element.boundingBox()
     newx = box["x"]
@@ -75,6 +75,6 @@ export const waitForElement = async (element: ElementHandle) => {
     }, 300)
 
   }
-  logger("element is stationary now")
+  // logger("element is stationary now")
   return element
 }
