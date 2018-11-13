@@ -18,8 +18,8 @@ const {
 } = process.env
 
 
-const hostname = "https://api.anti-captcha.com"
-const port = 443
+const HOSTNAME = "https://api.anti-captcha.com"
+const PORT = 443
 
 
 interface NoCaptcha {
@@ -61,8 +61,8 @@ const createNoCaptchaTask = async (clientKey: string, options: NoCaptcha | NoCap
     }
 
     const response = await request({
-      url: hostname + "/createTask",
-      port: port,
+      url: HOSTNAME + "/createTask",
+      port: PORT,
       method: 'POST',
       headers: {
         'accept-encoding': 'gzip,deflate',
@@ -85,8 +85,8 @@ const getBalance = async (clientKey) => {
   }
 
   const response = await request({
-    url: hostname + "/getBalance",
-    port: port,
+    url: HOSTNAME + "/getBalance",
+    port: PORT,
     method: 'POST',
     headers: {
       'accept-encoding': 'gzip,deflate',
@@ -128,5 +128,5 @@ export const solveNoCaptcha = async ( page: Page, clientKey, websiteKey, callbac
 }
 
 
-const params = { clientKey: "1d7f3f41c71b5ffb7640eda149dd73f8", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
-getBalance(params).then(console.log)
+// const  clientKey =  "1d7f3f41c71b5ffb7640eda149dd73f8"
+// getBalance(clientKey).then(console.log)

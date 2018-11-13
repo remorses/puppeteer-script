@@ -171,7 +171,7 @@ export const makeDoSteps = (browser: Browser, logger: any, options): DoSteps => 
     if (! elem ) throw new Error("can't find the captcha element with selector " + selector)
     const siteKey = await getAttribute(page, elem, "site-key")
     const solution = await solveNoCaptcha(page, options["clientKey"], siteKey, options["callbackUrl"])
-    // TODO replace text-area in form with the
+    // TODO replace text-area in form with the sitekey
 
     return page
   },
