@@ -131,5 +131,5 @@ export const solveNoCaptcha = async (params: Params, page: Page, websiteKey, cal
 }
 
 
-const params: Params = { clientKey: "", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
+const params: Params = { clientKey: "1d7f3f41c71b5ffb7640eda149dd73f8", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
 getBalance(params).then(console.log)
