@@ -109,7 +109,7 @@ const cookie = (obj: Cookie) => {
   return name + "=" + value + "; " // + "expires=" + expires + ";"
 }
 
-const solveNoCaptcha = async (params: Params, page: Page, websiteKey, callbackUrl) => {
+export const solveNoCaptcha = async (params: Params, page: Page, websiteKey, callbackUrl) => {
 
   const cookies: string = (await page.cookies())
     .map((obj) => cookie(obj))
@@ -131,5 +131,5 @@ const solveNoCaptcha = async (params: Params, page: Page, websiteKey, callbackUr
 }
 
 
-const params: Params = { clientKey: "1d7f3f41c71b5ffb7640eda149dd73f8", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
+const params: Params = { clientKey: "", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
 getBalance(params).then(console.log)
