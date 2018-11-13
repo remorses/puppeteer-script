@@ -3,7 +3,7 @@
 
 import { Browser, Page, Cookie } from "puppeteer";
 import request from "request-promise-native"
-import tough from "tough-cookie"
+
 
 // check balance first
 const {
@@ -15,13 +15,11 @@ const {
   PROXY_TYPE
 } = process.env
 
-const anticaptcha: any = require('./anticaptcha')(ANTICAPTCHA_KEY);
-
 
 interface NoCaptcha {
   websiteURL: string,
   websiteKey: string,
-  websiteSToken: string,
+  // websiteSToken: string,
   userAgent: string,
   cookies: string,
   languagePool: string
@@ -39,7 +37,7 @@ interface NoCaptchaProxy extends NoCaptcha {
 const defaults: NoCaptcha = {
   websiteURL: "",
   websiteKey: "",
-  websiteSToken: "",
+  // websiteSToken: "",
   userAgent: "",
   cookies: "",
   languagePool: "en",
@@ -47,7 +45,13 @@ const defaults: NoCaptcha = {
 }
 
 
-const createNoCaptchaTask = (params) =>
+interface Params {
+  clientKey, softId, hostname: string,
+  port: number
+}
+
+
+const createNoCaptchaTask = (params: Params) =>
   async (options: NoCaptcha | NoCaptchaProxy = defaults) => {
 
     const { clientKey, softId, hostname, port } = params
@@ -100,23 +104,26 @@ const getBalance = async (params) => {
 
 }
 
+const cookie = (obj: Cookie) => {
+  const { name, value, domain, path, expires, httpOnly, session, secure, sameSite } = obj
+  return name + "=" + value + "; " // + "expires=" + expires + ";"
+}
 
+const solveNoCaptcha = async (params: Params, page: Page, websiteKey, callbackUrl) => {
 
-const solveCaptcha = async (params, page: Page, websiteKey) => {
+  const cookies: string = (await page.cookies())
+    .map((obj) => cookie(obj))
+    .join("")
 
-  const cookies = (await page.cookies())
-  .map(({name, value, domain, path, expires,  httpOnly, session, secure, sameSite }: Cookie) =>
-   new tough.Cookie({key: name, value, expires: new Date(expires * 1000 ) , domain, httpOnly, path, secure }) )
-
-  const options = {
+  let options: NoCaptcha | NoCaptchaProxy = {
     websiteURL: await page.url(),
     websiteKey,
-    websiteSToken,
     userAgent: await page.evaluate("navigator.userAgent()"),
     cookies: cookies,
-    languagePool: "en"
-    callbackUrl: string
+    languagePool: "en",
   }
+
+  if (callbackUrl) options["callbackUrl"] = callbackUrl
 
   const balance = await getBalance(params)
   if (balance > 0) return (await createNoCaptchaTask(params))(options)
@@ -124,15 +131,5 @@ const solveCaptcha = async (params, page: Page, websiteKey) => {
 }
 
 
-
-const sessionCookie = new tough.Cookie({
-  key: 'some_key',
-  value: 'some_value',
-  domain: 'api.mydomain.com',
-  httpOnly: true,
-  maxAge: 31536000
-});
-
-var cookiejar = request.jar();
-
-cookiejar.setCookie(sessionCookie, 'https://api.mydomain.com');
+const params: Params = { clientKey: "1d7f3f41c71b5ffb7640eda149dd73f8", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
+getBalance(params).then(console.log)
