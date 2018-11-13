@@ -2,10 +2,10 @@ import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
-import { waitForLoad, findElement, waitForElement } from "./helpers"
+import { waitForLoad, findElement, waitForElement, getAttribute } from "./helpers"
 import { abort } from "./abort";
 import { redirect } from "./redirect";
-
+import { solveNoCaptcha } from "./anticaptcha"
 
 
 const WORKING_DIR = dirname((<any>require).main.filename)
@@ -14,7 +14,7 @@ export interface DoSteps {
   [key: string]: (page: Page) => (any) => Page | Promise<Page>
 }
 
-export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
+export const makeDoSteps = (browser: Browser, logger: any, options): DoSteps => ({
 
   // TODO create interface
   "click": (page: Page) => async (arg: scriptArgument | string) => {
@@ -54,7 +54,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     return page
   },
 
-  "new page": (page: Page) => async (url = "") => {
+  "new-page": (page: Page) => async (url = "") => {
     let _page: Page = page
     await browser.newPage()
       .then(page => _page = page)
@@ -62,7 +62,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     return _page
   },
 
-  "go to": (page: Page) => async (url = "") => {
+  "go-to": (page: Page) => async (url = "") => {
     await page.goto(url)
     return page
   },
@@ -77,7 +77,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     return page
   },
 
-  "close page": (page: Page) => async (index = -1) => {
+  "close-page": (page: Page) => async (index = -1) => {
     let pages = await browser.pages()
     const length = [...pages].length
 
@@ -105,7 +105,7 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     }
   },
 
-  "target page": (page: Page) => async (index = -1) => {
+  "target-page": (page: Page) => async (index = -1) => {
     await page.waitFor(100)
     const pages = await browser.pages()
     if (index < 0) {
@@ -135,18 +135,18 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
   },
 
 
-  "set user agent": (page: Page) => (path: "./file.js") => {
+  "set-user-agent": (page: Page) => (path: "./file.js") => {
     const file = fs.readFileSync(join(WORKING_DIR, path), 'utf8')
     page.setUserAgent(file)
     return page
   },
-  "set cookies": (page: Page) => (path: "./file.js") => {
+  "set-cookies": (page: Page) => (path: "./file.js") => {
     const file = require(join(WORKING_DIR, path))
     page.setCookie(...file)
     return page
   },
 
-  "export html": (page: Page) => async (path: "./file.html") => {
+  "export-html": (page: Page) => async (path: "./file.html") => {
     const content = await page.content()
     await fs.writeFile(join(WORKING_DIR, path), content)
     return page
@@ -163,6 +163,16 @@ export const makeDoSteps = (browser: Browser, logger: any, ): DoSteps => ({
     const promises1 = requests.map(({ to: url, types: types }) => abort(browser, types, url))
     const promises2 = responses.map(({ from: url, types: types }) => redirect(browser, types, url))
     await Promise.all([...promises1, ...promises2])
+    return page
+  },
+
+  "solve-nocaptcha": (page: Page) => async (selector) => {
+    const elem = await page.$(selector)
+    if (! elem ) throw new Error("can't find the captcha element with selector " + selector)
+    const siteKey = await getAttribute(page, elem, "site-key")
+    const solution = await solveNoCaptcha(page, options["clientKey"], siteKey, options["callbackUrl"])
+    // TODO replace text-area in form with the
+
     return page
   },
 

@@ -7,6 +7,7 @@ import chalk from "chalk"
 import { makeDoSteps, DoSteps } from "./doSteps"
 import { makeEmulate } from "./emulate"
 import { abort } from "./abort"
+import { makeSolveNoCaptcha } from "./anticaptcha"
 const logger = require("debug")("script")
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
@@ -15,16 +16,24 @@ const { DEBUG = "" } = process.env
 // logger("WORKING_DIR:", WORKING_DIR)
 export const fromOBJECT = async (script: Object) => {
 
+
+  let options: any = {}
+
   // logger("script:", script.do)
+  let solveNoCaptcha: Function
   const executablePath: string = script["executable"] || ""
   const headless: boolean = !!script["headless"]
   const requestsToAbort = script["abort"] || []
-  const [emulate, options] = makeEmulate(script["emulate"] || "")
+  const [emulate, emulationArgs] = makeEmulate(script["emulate"] || "")
   const args = script["args"] || []
   const defaults = ['--no-sandbox', '--disable-setuid-sandbox']
-  const { width, height} = script["viewport"] || {width: 1000, height: 1000}
 
-  await launch({ headless, executablePath, ...options, args: [...defaults, ...args] , defaultViewport: {width, height}}).then(async (browser: Browser) => {
+  options.clientKey = script["anti-captcha-key"] || null
+
+  const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
+
+  await launch({ headless, executablePath, ...emulationArgs, args: [...defaults, ...args], defaultViewport: { width, height } })
+  .then(async (browser: Browser) => {
 
     await emulate(browser)
 
@@ -33,7 +42,7 @@ export const fromOBJECT = async (script: Object) => {
     const pages = await browser.pages()
     let page: Page = pages[0]
 
-    const doSteps: DoSteps = makeDoSteps(browser, logger)
+    const doSteps: DoSteps = makeDoSteps(browser, logger, options)
     // logger("doSteps", doSteps)
 
     let func: Function

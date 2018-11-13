@@ -1,13 +1,15 @@
 
 headless: false
 abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
-anti-captcha.key: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
 executable: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 viewport: { width: 1000, height: 1000 }
 args: []
+anti-captcha-key: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
+# anti-captcha-callback: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
+
 
 do:
-  - go to:   "https://www.google.com/"
+  - go-to:   https://www.google.com/
   - wait: 0
   - click:   'input[name="emailOrPhone"]'
   - type:    "usernamedfsfgshdfhdfgh@gmail.com" # keyboard.type
@@ -23,6 +25,7 @@ do:
   - click: input[name="ageRadio"][value="above_18"]
   - wait: 800
   - click: {selector: button, containing: /Avanti/i }
+  - solve-nocaptcha: "selector with site-key"
 # - close page: -1 # close current page, google
 
   # - export html: "./artifacts/file.html"

@@ -5,6 +5,8 @@ import { Browser, Page, Cookie } from "puppeteer";
 import request from "request-promise-native"
 
 
+
+
 // check balance first
 const {
   ANTICAPTCHA_KEY,
@@ -14,6 +16,10 @@ const {
   PROXY_PORT,
   PROXY_TYPE
 } = process.env
+
+
+const hostname = "https://api.anti-captcha.com"
+const port = 443
 
 
 interface NoCaptcha {
@@ -45,21 +51,13 @@ const defaults: NoCaptcha = {
 }
 
 
-interface Params {
-  clientKey, softId, hostname: string,
-  port: number
-}
+const createNoCaptchaTask = async (clientKey: string, options: NoCaptcha | NoCaptchaProxy = defaults) => {
 
-
-const createNoCaptchaTask = (params: Params) =>
-  async (options: NoCaptcha | NoCaptchaProxy = defaults) => {
-
-    const { clientKey, softId, hostname, port } = params
 
     const postData = {
       clientKey: clientKey,
       task: { ...options, type: "NoCaptchaTask" },
-      softId: softId
+      softId: 0
     }
 
     const response = await request({
@@ -79,9 +77,8 @@ const createNoCaptchaTask = (params: Params) =>
 
   }
 
-const getBalance = async (params) => {
+const getBalance = async (clientKey) => {
 
-  const { clientKey, softId, hostname, port } = params
 
   const postData = {
     clientKey,
@@ -109,7 +106,7 @@ const cookie = (obj: Cookie) => {
   return name + "=" + value + "; " // + "expires=" + expires + ";"
 }
 
-export const solveNoCaptcha = async (params: Params, page: Page, websiteKey, callbackUrl) => {
+export const solveNoCaptcha = async ( page: Page, clientKey, websiteKey, callbackUrl) => {
 
   const cookies: string = (await page.cookies())
     .map((obj) => cookie(obj))
@@ -125,11 +122,11 @@ export const solveNoCaptcha = async (params: Params, page: Page, websiteKey, cal
 
   if (callbackUrl) options["callbackUrl"] = callbackUrl
 
-  const balance = await getBalance(params)
-  if (balance > 0) return (await createNoCaptchaTask(params))(options)
+  const balance = await getBalance(clientKey)
+  if (balance > 0) return (await createNoCaptchaTask(clientKey))(options)
 
 }
 
 
-const params: Params = { clientKey: "1d7f3f41c71b5ffb7640eda149dd73f8", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
+const params = { clientKey: "1d7f3f41c71b5ffb7640eda149dd73f8", softId: 0, hostname: "https://api.anti-captcha.com", port: 443 }
 getBalance(params).then(console.log)
