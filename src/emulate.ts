@@ -13,11 +13,10 @@ const emulatePage = async (page: Page, device: string) => {
 }
 
 // TODO add other desktop devices
-export const makeEmulate = (device: string) => [async (browser: Browser, ) => {
+export const emulate = async (browser: Browser, device: string ) => {
   if (!descriptors[device]) return false
   const pages = await browser.pages()
   pages.forEach((page: Page) => emulatePage(page, device))
   await browser.on('targetcreated', async (target: Target) => await emulatePage(await target.page(), device))
   return true
-}, options[device] || {}
-]
+}

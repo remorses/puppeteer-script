@@ -14,7 +14,7 @@ export interface DoSteps {
   [key: string]: (page: Page) => (any) => Page | Promise<Page>
 }
 
-export const makeDoSteps = (browser: Browser, logger: any, options): DoSteps => ({
+export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
 
   // TODO create interface
   "click": (page: Page) => async (arg: scriptArgument | string) => {
@@ -29,17 +29,17 @@ export const makeDoSteps = (browser: Browser, logger: any, options): DoSteps => 
     }
 
     // logger(selector)
-    const element =  await findElement(page, selector, containing)
+    const element = await findElement(page, selector, containing)
     if (!element) throw new Error("no element found contining " + containing)
     await waitForElement(element)
-    await element.click({clickCount: 2})
+    await element.click({ clickCount: 2 })
 
     return page
   },
 
   "type": (page: Page) => async (arg: scriptArgument | string) => {
     if (typeof arg === "object") {
-      const { selector, containing, ...options } = arg;
+      const { selector, containing, } = arg;
       const element = await findElement(page, <string>selector, <string>containing)
       if (!element) throw new Error("no element")
       await element.click()
@@ -90,7 +90,7 @@ export const makeDoSteps = (browser: Browser, logger: any, options): DoSteps => 
         await page.waitFor(100)
       }
       const newPage = await pages[pages.length - 1]
-      if(newPage)  await newPage.bringToFront()
+      if (newPage) await newPage.bringToFront()
       return newPage
 
     } else {
@@ -100,7 +100,7 @@ export const makeDoSteps = (browser: Browser, logger: any, options): DoSteps => 
         await page.waitFor(100)
       }
       const newPage = await pages[pages.length - 1]
-      if(newPage)  await newPage.bringToFront()
+      if (newPage) await newPage.bringToFront()
       return newPage
     }
   },
@@ -168,9 +168,10 @@ export const makeDoSteps = (browser: Browser, logger: any, options): DoSteps => 
 
   "solve-nocaptcha": (page: Page) => async (selector) => {
     const elem = await page.$(selector)
-    if (! elem ) throw new Error("can't find the captcha element with selector " + selector)
+    if (!elem) throw new Error("can't find the captcha element with selector " + selector)
     const siteKey = await getAttribute(page, elem, "site-key")
-    const solution = await solveNoCaptcha(page, options["clientKey"], siteKey, options["callbackUrl"])
+    if(!process.env["ANTICAPTCHA_KEY"]) throw Error("please put ANTICAPTCHA_KEY in environment or anticaptcha-key in script file")
+    const solution = await solveNoCaptcha(page, process.env["ANTICAPTCHA_KEY"], siteKey, process.env["ANTICAPTCHA_CALLBACK"])
     // TODO replace text-area in form with the sitekey
 
     return page

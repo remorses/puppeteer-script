@@ -5,7 +5,7 @@ executable: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 viewport: { width: 1000, height: 1000 }
 args: []
 anti-captcha-key: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
-# anti-captcha-callback: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
+#anticaptcha-callback: "url.es"
 
 
 do:

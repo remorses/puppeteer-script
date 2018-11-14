@@ -1,3 +1,4 @@
+require('dotenv').config()
 
 import * as YAML from "yaml"
 import * as fs from "mz/fs"
@@ -5,86 +6,83 @@ import { join, dirname } from "path"
 import { launch, Browser, Page } from "puppeteer";
 import chalk from "chalk"
 import { makeDoSteps, DoSteps } from "./doSteps"
-import { makeEmulate } from "./emulate"
+import { emulate } from "./emulate"
 import { abort } from "./abort"
-import { makeSolveNoCaptcha } from "./anticaptcha"
-const logger = require("debug")("script")
+const logger = console.log //require("debug")("script")
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
 
 
 // logger("WORKING_DIR:", WORKING_DIR)
 export const fromOBJECT = async (script: Object) => {
+  makeEnv(script)
+  const options = await makeOptions(script)
+  const browser: Browser = await makeBrowser(script, options)
+  const doSteps: DoSteps = makeDoSteps(browser, logger)
+  let page = (await browser.pages())[0]
 
+  let func: Function
+  let key: string = ""
+  let value: string = ""
 
-  let options: any = {}
+  try {
 
-  // logger("script:", script.do)
-  let solveNoCaptcha: Function
-  const executablePath: string = script["executable"] || ""
-  const headless: boolean = !!script["headless"]
-  const requestsToAbort = script["abort"] || []
-  const [emulate, emulationArgs] = makeEmulate(script["emulate"] || "")
-  const args = script["args"] || []
-  const defaults = ['--no-sandbox', '--disable-setuid-sandbox']
+    for (let step of script["do"]) {
+      key = Object.keys(step)[0]
+      value = step[key];
+      logger(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
 
-  options.clientKey = script["anti-captcha-key"] || null
+      func = await (<any>doSteps)[key]
+      if (!func) console.error(red(bold(key) + " still not implemented"))
+      page = await (await func(page)(value))
 
-  const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
-
-  await launch({ headless, executablePath, ...emulationArgs, args: [...defaults, ...args], defaultViewport: { width, height } })
-  .then(async (browser: Browser) => {
-
-    await emulate(browser)
-
-    await abort(browser, requestsToAbort)
-
-    const pages = await browser.pages()
-    let page: Page = pages[0]
-
-    const doSteps: DoSteps = makeDoSteps(browser, logger, options)
-    // logger("doSteps", doSteps)
-
-    let func: Function
-    let key: string = ""
-    let value: string = ""
-
-    try {
-
-      for (let step of script["do"]) {
-
-
-        key = Object.keys(step)[0]
-        value = step[key];
-        console.log(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
-
-
-
-        if (DEBUG.match(/script*/i)) {
-          const pagesLogs = (await browser.pages())
-            .map((x: Page) => x.url())
-            .map((x, i) => i + ". " + x + "\n")
-          logger("pages:\n", ...pagesLogs)
-        }
-
-
-
-        func = await (<any>doSteps)[key]
-        if (!func) console.error(red(bold(key) + " still not implemented"))
-
-        page = await (await func(page)(value))
-      }
-
-    } catch (e) {
-      console.error(red("Error in " + bold(key + ": " + value) + " step" + "\n" + e["message"].trim()))
-      process.exit(1)
-
+      // if (DEBUG.match(/script*/i)) {
+      //   const pagesLogs = (await browser.pages())
+      //     .map((x: Page) => x.url())
+      //     .map((x, i) => i + ". " + x + "\n")
+      //   logger("pages:\n", ...pagesLogs)
+      // }
+       logger(Buffer.byteLength(JSON.stringify(page)))
     }
-
-    return
-
-
-  })
+  } catch (e) {
+    console.error(red("Error in " + bold(key + ": " + value) + " step" + "\n" + e["message"].trim()))
+    process.exit(1)
+  }
 
   logger(bold("done"))
+  // await browser.close()
+}
+
+
+
+
+const makeEnv = (script: any) => {
+
+  const set = (variable: string) => {
+    let scriptVariable = variable.toLowerCase().replace("-", "_")
+    process.env[variable] = script[scriptVariable] || process.env[variable] || null
+  }
+
+  set("ANTICAPTCHA_KEY")
+  set("ANTICAPTCHA_CALLBACK")
+
+}
+
+const makeOptions = async (script: any) => {
+  const defaults = ['--no-sandbox', '--disable-setuid-sandbox']
+  const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
+  return {
+    args: [...defaults, ...(script["args"] || [])],
+    headless: !!script["headless"],
+    executablePath: script["executable"] || "",
+    defaultViewport: { width, height }
+  }
+}
+
+const makeBrowser = async (script: any, options) => {
+  return await launch({ ...makeOptions }).then(async browser => {
+    await emulate(browser, script["emulate"] || "")
+    await abort(browser, script["abort"] || [])
+    return browser
+  })
 }
