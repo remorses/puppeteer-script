@@ -4,3 +4,4 @@ export declare const findElement: (page: Page, selector?: string, regex?: string
 export declare const getContent: (element: ElementHandle<Element>) => Promise<string>;
 export declare const getAttribute: (page: Page, element: ElementHandle<Element>, attribute: string) => Promise<string>;
 export declare const waitForElement: (element: ElementHandle<Element>) => Promise<ElementHandle<Element>>;
+export declare function roughSizeOfObject(object: any): number;

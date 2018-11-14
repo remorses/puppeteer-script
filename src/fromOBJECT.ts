@@ -11,7 +11,7 @@ import { abort } from "./abort"
 const logger = console.log //require("debug")("script")
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
-
+import { roughSizeOfObject } from "./helpers"
 
 // logger("WORKING_DIR:", WORKING_DIR)
 export const fromOBJECT = async (script: Object) => {
@@ -32,7 +32,7 @@ export const fromOBJECT = async (script: Object) => {
       value = step[key];
       logger(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
 
-      func = await (<any>doSteps)[key]
+      func =  doSteps[key]
       if (!func) console.error(red(bold(key) + " still not implemented"))
       page = await (await func(page)(value))
 
@@ -42,11 +42,12 @@ export const fromOBJECT = async (script: Object) => {
       //     .map((x, i) => i + ". " + x + "\n")
       //   logger("pages:\n", ...pagesLogs)
       // }
-       logger(Buffer.byteLength(JSON.stringify(page)))
+
+
     }
   } catch (e) {
     console.error(red("Error in " + bold(key + ": " + value) + " step" + "\n" + e["message"].trim()))
-    process.exit(1)
+    //process.exit(1)
   }
 
   logger(bold("done"))
@@ -54,10 +55,7 @@ export const fromOBJECT = async (script: Object) => {
 }
 
 
-
-
 const makeEnv = (script: any) => {
-
   const set = (variable: string) => {
     let scriptVariable = variable.toLowerCase().replace("-", "_")
     process.env[variable] = script[scriptVariable] || process.env[variable] || null
@@ -65,23 +63,22 @@ const makeEnv = (script: any) => {
 
   set("ANTICAPTCHA_KEY")
   set("ANTICAPTCHA_CALLBACK")
-
 }
 
 const makeOptions = async (script: any) => {
-  const defaults = ['--no-sandbox', '--disable-setuid-sandbox']
+  const defaults = []
   const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
   return {
     args: [...defaults, ...(script["args"] || [])],
     headless: !!script["headless"],
-    executablePath: script["executable"] || "",
+    executablePath: script["executable"] || "default",
     defaultViewport: { width, height }
   }
 }
 
 const makeBrowser = async (script: any, options) => {
-  return await launch({ ...makeOptions }).then(async browser => {
-    await emulate(browser, script["emulate"] || "")
+  return await launch({ ...options }).then(async browser => {
+    await emulate(browser, script["emulate"] || null)
     await abort(browser, script["abort"] || [])
     return browser
   })

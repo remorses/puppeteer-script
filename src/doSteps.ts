@@ -59,11 +59,13 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     await browser.newPage()
       .then(page => _page = page)
       .then(page => page.goto(url))
+    await (<any>_page)._client.send('Emulation.clearDeviceMetricsOverride')
     return _page
   },
 
   "go-to": (page: Page) => async (url = "") => {
-    await page.goto(url)
+    await page.goto(url, {waitUntil: "domcontentloaded"})
+    await (<any>page)._client.send('Emulation.clearDeviceMetricsOverride')
     return page
   },
 
@@ -113,6 +115,7 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
       return pages[pages.length + index]
     } else {
       await pages[index].bringToFront();
+      await (<any>pages[index])._client.send('Emulation.clearDeviceMetricsOverride')
       return pages[index]
     }
   },
@@ -134,12 +137,11 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     return page
   },
 
-
-  "set-user-agent": (page: Page) => (path: "./file.js") => {
-    const file = fs.readFileSync(join(WORKING_DIR, path), 'utf8')
-    page.setUserAgent(file)
+  "set-user-agent": (page: Page) => (userAgent: "") => {
+    page.setUserAgent(userAgent)
     return page
   },
+
   "set-cookies": (page: Page) => (path: "./file.js") => {
     const file = require(join(WORKING_DIR, path))
     page.setCookie(...file)
@@ -167,9 +169,12 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
   },
 
   "solve-nocaptcha": (page: Page) => async (selector) => {
+
     const elem = await page.$(selector)
-    if (!elem) throw new Error("can't find the captcha element with selector " + selector)
+    if (!elem) throw new Error("can't find the captcha element with selector '" + selector +"'")
+
     const siteKey = await getAttribute(page, elem, "site-key")
+
     if(!process.env["ANTICAPTCHA_KEY"]) throw Error("please put ANTICAPTCHA_KEY in environment or anticaptcha-key in script file")
     const solution = await solveNoCaptcha(page, process.env["ANTICAPTCHA_KEY"], siteKey, process.env["ANTICAPTCHA_CALLBACK"])
     // TODO replace text-area in form with the sitekey

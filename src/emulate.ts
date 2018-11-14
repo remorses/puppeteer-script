@@ -2,7 +2,7 @@
 
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 const puppeteerDescriptors = require('puppeteer/DeviceDescriptors');
-const { descriptors, options } = require("./devices")
+import * as  descriptors  from "./devices"
 const devices = { ...puppeteerDescriptors, ...descriptors }
 
 
@@ -14,7 +14,8 @@ const emulatePage = async (page: Page, device: string) => {
 
 // TODO add other desktop devices
 export const emulate = async (browser: Browser, device: string ) => {
-  if (!descriptors[device]) return false
+  if (!device) return 
+  if (!descriptors[device]) throw new Error("can't find user agent")
   const pages = await browser.pages()
   pages.forEach((page: Page) => emulatePage(page, device))
   await browser.on('targetcreated', async (target: Target) => await emulatePage(await target.page(), device))
