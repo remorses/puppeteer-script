@@ -114,3 +114,11 @@ export function roughSizeOfObject(object) {
 
   return bytes;
 }
+
+
+export const ifThen = async (check: any, fun: any) => {
+  if (!!check)
+    return await fun(check)
+  else
+    return null
+}

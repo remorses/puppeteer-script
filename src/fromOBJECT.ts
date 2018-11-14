@@ -28,13 +28,16 @@ export const fromOBJECT = async (script: Object) => {
   try {
 
     for (let step of script["do"]) {
+      logger(await page.evaluate("navigator.userAgent"))
+
       key = Object.keys(step)[0]
       value = step[key];
       logger(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
 
-      func =  doSteps[key]
+      func =  await doSteps[key]
       if (!func) console.error(red(bold(key) + " still not implemented"))
       page = await (await func(page)(value))
+
 
       // if (DEBUG.match(/script*/i)) {
       //   const pagesLogs = (await browser.pages())
@@ -56,30 +59,36 @@ export const fromOBJECT = async (script: Object) => {
 
 
 const makeEnv = (script: any) => {
+
+
   const set = (variable: string) => {
-    let scriptVariable = variable.toLowerCase().replace("-", "_")
+    let scriptVariable = variable.toLowerCase().replace("_", "-")
     process.env[variable] = script[scriptVariable] || process.env[variable] || null
   }
 
+
+  set("EMULATE")
   set("ANTICAPTCHA_KEY")
   set("ANTICAPTCHA_CALLBACK")
+  set("USER_AGENT")
 }
 
 const makeOptions = async (script: any) => {
   const defaults = []
   const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
-  return {
+  let options: any =  {
     args: [...defaults, ...(script["args"] || [])],
     headless: !!script["headless"],
-    executablePath: script["executable"] || "default",
     defaultViewport: { width, height }
   }
+  if (script["executable"]) options.executablePath =  script["executable"]
+  return options
 }
 
 const makeBrowser = async (script: any, options) => {
   return await launch({ ...options }).then(async browser => {
-    await emulate(browser, script["emulate"] || null)
-    await abort(browser, script["abort"] || [])
+    if(script["emulate"]) await emulate(browser, script["emulate"])
+    if (script["abort"]) await abort(browser, script["abort"])
     return browser
   })
 }

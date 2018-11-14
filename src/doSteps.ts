@@ -2,11 +2,11 @@ import * as fs from "mz/fs"
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
-import { waitForLoad, findElement, waitForElement, getAttribute } from "./helpers"
+import { waitForLoad, findElement, waitForElement, getAttribute, ifThen } from "./helpers"
 import { abort } from "./abort";
 import { redirect } from "./redirect";
 import { solveNoCaptcha } from "./anticaptcha"
-
+import { emulatePage } from "./emulate"
 
 const WORKING_DIR = dirname((<any>require).main.filename)
 
@@ -14,10 +14,25 @@ export interface DoSteps {
   [key: string]: (page: Page) => (any) => Page | Promise<Page>
 }
 
+
+const preparePage = async (page: Page) => {
+  const { EMULATE = null } = process.env
+  if (EMULATE) await emulatePage(page, EMULATE)
+  await (<any>page)._client.send('Emulation.clearDeviceMetricsOverride')
+}
+
+
 export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
 
+  "go-to": (page: Page) => async (url = "") => {
+    await preparePage(page)
+    await page.goto(url)
+
+    return page
+  },
+
   // TODO create interface
-  "click": (page: Page) => async (arg: scriptArgument | string) => {
+  "click": (page: Page) => async (arg: ScriptArgument | string) => {
 
     let selector, containing
     if (typeof arg === "object") {
@@ -37,7 +52,7 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     return page
   },
 
-  "type": (page: Page) => async (arg: scriptArgument | string) => {
+  "type": (page: Page) => async (arg: ScriptArgument | string) => {
     if (typeof arg === "object") {
       const { selector, containing, } = arg;
       const element = await findElement(page, <string>selector, <string>containing)
@@ -58,16 +73,13 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     let _page: Page = page
     await browser.newPage()
       .then(page => _page = page)
+      // .then(async page => process.env["EMULATE"] ? await emulatePage(page, <any>process.env["EMULATE"]) : page)
       .then(page => page.goto(url))
-    await (<any>_page)._client.send('Emulation.clearDeviceMetricsOverride')
+    await preparePage(_page)
     return _page
   },
 
-  "go-to": (page: Page) => async (url = "") => {
-    await page.goto(url, {waitUntil: "domcontentloaded"})
-    await (<any>page)._client.send('Emulation.clearDeviceMetricsOverride')
-    return page
-  },
+
 
   "wait": (page: Page) => async (time = 0) => {
     time ? await page.waitFor(time) : await waitForLoad(page)
@@ -75,7 +87,7 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
   },
 
   "echo": (page: Page) => (text = "") => {
-    logger(text + "\n")
+    logger(text)
     return page
   },
 
@@ -111,11 +123,14 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     await page.waitFor(100)
     const pages = await browser.pages()
     if (index < 0) {
-      pages[pages.length + index].bringToFront()
-      return pages[pages.length + index]
+      const page = pages[pages.length + index]
+      await page.bringToFront()
+      await preparePage(page)
+      return page
+      
     } else {
       await pages[index].bringToFront();
-      await (<any>pages[index])._client.send('Emulation.clearDeviceMetricsOverride')
+      await preparePage(pages[index])
       return pages[index]
     }
   },
@@ -137,14 +152,14 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     return page
   },
 
-  "set-user-agent": (page: Page) => (userAgent: "") => {
-    page.setUserAgent(userAgent)
+  "set-user-agent": (page: Page) => async (userAgent: "") => {
+    await page.setUserAgent(userAgent)
     return page
   },
 
-  "set-cookies": (page: Page) => (path: "./file.js") => {
+  "set-cookies": (page: Page) => async (path: "./file.js") => {
     const file = require(join(WORKING_DIR, path))
-    page.setCookie(...file)
+    await page.setCookie(...file)
     return page
   },
 
@@ -154,28 +169,28 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     return page
   },
 
-  "block": (page: Page) => async ({ requests, responses, }) => {
-    const promises1 = requests.map(({ to: url, types: types }) => abort(browser, types, url))
-    const promises2 = responses.map(({ from: url, types: types }) => redirect(browser, types, url))
-    await Promise.all([...promises1, ...promises2])
-    return page
-  },
+  // "block": (page: Page) => async ({ requests, responses, }) => {
+  //   const promises1 = requests.map(({ to: url, types: types }) => block(browser, types, url))
+  //   const promises2 = responses.map(({ from: url, types: types }) => redirect(browser, types, url))
+  //   await Promise.all([...promises1, ...promises2])
+  //   return page
+  // },
 
-  "redirect": (page: Page) => async ({ requests, responses, to }) => {
-    const promises1 = requests.map(({ to: url, types: types }) => abort(browser, types, url))
-    const promises2 = responses.map(({ from: url, types: types }) => redirect(browser, types, url))
-    await Promise.all([...promises1, ...promises2])
-    return page
-  },
+  // "redirect": (page: Page) => async ({ requests, responses, to }) => {
+  //   const promises1 = requests.map(({ to: url, types: types }) => abort(browser, types, url))
+  //   const promises2 = responses.map(({ from: url, types: types }) => redirect(browser, types, url))
+  //   await Promise.all([...promises1, ...promises2])
+  //   return page
+  // },
 
   "solve-nocaptcha": (page: Page) => async (selector) => {
 
     const elem = await page.$(selector)
-    if (!elem) throw new Error("can't find the captcha element with selector '" + selector +"'")
+    if (!elem) throw new Error("can't find the captcha element with selector '" + selector + "'")
 
     const siteKey = await getAttribute(page, elem, "site-key")
 
-    if(!process.env["ANTICAPTCHA_KEY"]) throw Error("please put ANTICAPTCHA_KEY in environment or anticaptcha-key in script file")
+    if (!process.env["ANTICAPTCHA_KEY"]) throw Error("please put ANTICAPTCHA_KEY in environment or anticaptcha-key in script file")
     const solution = await solveNoCaptcha(page, process.env["ANTICAPTCHA_KEY"], siteKey, process.env["ANTICAPTCHA_CALLBACK"])
     // TODO replace text-area in form with the sitekey
 
@@ -196,6 +211,6 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
 
 
 
-interface scriptArgument {
+interface ScriptArgument {
   [key: string]: string | number | boolean | RegExp
 }
