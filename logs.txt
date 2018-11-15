@@ -1,2 +1,0 @@
-
-Executing 'go to' : "https://www.google.com/"
