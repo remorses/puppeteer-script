@@ -65,3 +65,5 @@ artifacts/*
 .env
 
 lib
+
+.npmignore
