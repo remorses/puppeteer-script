@@ -27,14 +27,17 @@ export const fromOBJECT = async (script: Object) => {
 
     .reduce(async (state, action) => {
       return await reducer(await state, action)
+
         .then(x => {
-          logger(("\n" + "Executing " + bold("'" + action.method + "'" + " : " + JSON.stringify(action.arg))))
+          logExecuted(action)
           return x
         })
+
         .catch(e => {
-          logger(red("Error in " + bold(action.method + ": " + action.arg) + " step" + "\n" + e["message"].trim()))
+          logError(e, action)
           process.exit(1)
         })
+
     }, Promise.resolve(page))
 
     .then(x => {
@@ -43,3 +46,13 @@ export const fromOBJECT = async (script: Object) => {
     })
 
 }
+
+
+
+const logExecuted = action => logger(("\n" + "Executed "
+  + bold("'" + action.method + "'" + " : "
+    + JSON.stringify(action.arg))))
+
+
+const logError = (e, action) => logger(red("Error in " + bold(action.method
+  + ": " + action.arg) + " step" + "\n" + e["message"].trim()))
