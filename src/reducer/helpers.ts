@@ -126,8 +126,8 @@ export const ifThen = async (check: any, fun: any) => {
 
 
 
-// export const preparePage = async (page: Page) => {
-//   const { EMULATE = null } = process.env
-//   if (EMULATE) await emulatePage(page, EMULATE)
-//   await (<any>page)._client.send('Emulation.clearDeviceMetricsOverride')
-// }
+export const preparePage = async (page: Page) => {
+  const { EMULATE = null } = process.env
+  // if (EMULATE) await emulatePage(page, EMULATE)
+  await (<any>page)._client.send('Emulation.clearDeviceMetricsOverride')
+}

@@ -5,6 +5,7 @@ import { launch } from "puppeteer"
 const logger = console.log
 import chalk from "chalk"
 const { red, bold, bgRed, white } = chalk
+
 const logErr = (err: Error) => logger(red(err.message + " in " + __filename))
 
 export const prepare = async (script: Object): Promise<Browser> =>
