@@ -1,6 +1,6 @@
 import { Browser, Page, Cookie } from "puppeteer";
 import request from "request-promise-native"
-
+require("dotenv").config()
 
 // check balance first
 const {
@@ -122,15 +122,15 @@ export const solveNoCaptcha = async (page: Page, clientKey, websiteKey, callback
 
 }
 
-// (async () => {
-//   const clientKey = process.env.ANTICAPTCHA_KEY
-//   await getBalance(clientKey).then(console.log)
-//   await createNoCaptchaTask(clientKey,{
-//     websiteURL: "https://www.spotify.com/it/signup/?forward_url=https%3A%2F%2Fopen.spotify.com%2Fbrowse%2Ffeatured",
-//     websiteKey: "6LdaGwcTAAAAAJfb0xQdr3FqU4ZzfAc_QZvIPby5",
-//     userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36",
-//     cookies: "",
-//     languagePool: "en",
-//     // callbackUrl: ""
-//   }).then(console.log)
-// })()
+(async () => {
+  const clientKey = process.env.ANTICAPTCHA_KEY
+  await getBalance(clientKey).then(console.log)
+  await createNoCaptchaTask(clientKey,{
+    websiteURL: "https://www.spotify.com/it/signup/?forward_url=https%3A%2F%2Fopen.spotify.com%2Fbrowse%2Ffeatured",
+    websiteKey: "6LdaGwcTAAAAAJfb0xQdr3FqU4ZzfAc_QZvIPby5",
+    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36",
+    cookies: "",
+    languagePool: "en",
+    // callbackUrl: ""
+  }).then(console.log).catch(console.log)
+})()

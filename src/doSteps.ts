@@ -79,8 +79,6 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
     return _page
   },
 
-
-
   "wait": (page: Page) => async (time = 0) => {
     time ? await page.waitFor(time) : await waitForLoad(page)
     return page
@@ -127,7 +125,7 @@ export const makeDoSteps = (browser: Browser, logger: any): DoSteps => ({
       await page.bringToFront()
       await preparePage(page)
       return page
-      
+
     } else {
       await pages[index].bringToFront();
       await preparePage(pages[index])

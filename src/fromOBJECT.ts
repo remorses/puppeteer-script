@@ -34,7 +34,7 @@ export const fromOBJECT = async (script: Object) => {
       value = step[key];
       logger(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
 
-      func =  await doSteps[key]
+      func =   doSteps[key]
       if (!func) console.error(red(bold(key) + " still not implemented"))
       page = await (await func(page)(value))
 
