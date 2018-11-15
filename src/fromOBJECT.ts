@@ -2,11 +2,11 @@ require('dotenv').config()
 
 import * as fs from "mz/fs"
 import { join, dirname } from "path"
-import {  Browser, Page } from "puppeteer";
-import chalk from "chalk"
+import { Browser, Page } from "puppeteer";
 import { reducer, Action } from "./reducer"
 import { prepare } from "./prepare";
 const logger = console.log //require("debug")("script")
+import chalk from "chalk"
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
 // import { roughSizeOfObject } from "./helpers"
@@ -25,15 +25,16 @@ export const fromOBJECT = async (script: Object) => {
       return { method: key, arg: value }
     })
 
-    .map(({ method, arg }) => {
-      logger(("\n" + "Executing " + bold("'" + method + "'" + " : " + JSON.stringify(arg))))
-      return ({ method, arg })
-    })
-
-    .reduce((state, action) => {
-      return reducer(state, action)
-        .catch(e =>
-          logger(red("Error in " + bold(action.method + ": " + action.arg) + " step" + "\n" + e["message"].trim())))
+    .reduce(async (state, action) => {
+      return await reducer(await state, action)
+        .then(x => {
+          logger(("\n" + "Executing " + bold("'" + action.method + "'" + " : " + JSON.stringify(action.arg))))
+          return x
+        })
+        .catch(e => {
+          logger(red("Error in " + bold(action.method + ": " + action.arg) + " step" + "\n" + e["message"].trim()))
+          process.exit(1)
+        })
     }, Promise.resolve(page))
 
     .then(x => {

@@ -1,5 +1,5 @@
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
-import { emulatePage } from "emulate";
+import { emulatePage } from "./emulate";
 const logger = console.log
 
 export const waitForLoad = (page: Page) => new Promise((res) => {

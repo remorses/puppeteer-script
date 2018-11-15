@@ -1,16 +1,18 @@
 import { Browser } from "puppeteer";
-
 import { emulate } from "./emulate";
 import { abort } from "./abort";
-
-
+import { launch } from "puppeteer"
+const logger = console.log
+import chalk from "chalk"
+const { red, bold, bgRed, white } = chalk
+const logErr = (err: Error) => logger(red(err.message + " in " + __filename))
 
 export const prepare = async (script: Object): Promise<Browser> =>
   pipe(
-    await makeEnv,
-    await makeOptions,
-    await makeBrowser
-  )(script)
+     makeEnv,
+     makeOptions,
+     makeBrowser
+  )(script).catch(logErr)
 
 
 const pipe = (...functions) => input =>
@@ -20,7 +22,7 @@ const pipe = (...functions) => input =>
 
 const makeEnv = async (script: any) => {
   const set = (variable: string) => {
-    let scriptVariable = variable.toLowerCase().replace("_", "-")
+    const scriptVariable = variable.toLowerCase().replace("_", "-")
     process.env[variable] = script[scriptVariable] || process.env[variable] || null
   }
 
@@ -28,26 +30,26 @@ const makeEnv = async (script: any) => {
   set("ANTICAPTCHA_KEY")
   set("ANTICAPTCHA_CALLBACK")
   set("USER_AGENT")
+  return script
 }
 
 const makeOptions = async (script: any) => {
   const defaults = []
-  const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
   let options: any = {
-    launch: {
+    launchOPtions: {
       args: [...defaults, ...(script["args"] || [])],
       headless: !!script["headless"],
-      defaultViewport: { width, height }
+      defaultViewport: script["viewport"] || { width: 1000, height: 1000 },
+      executablePath: script["executable"] || null
     },
-    emulate: script["emulate"],
-    abort: script["abort"]
+    emulate: script["emulate"] || null,
+    abort: script["abort"] || null
   }
-  if (script["executable"]) options.executablePath = script["executable"]
   return options
 }
 
-const makeBrowser = async ({ launch, ...rest }): Promise<Browser> => {
-  return await launch({ ...launch }).then(async (browser: Browser) => {
+const makeBrowser = async ({ launchOPtions, ...rest }): Promise<Browser> => {
+  return await launch({ ...launchOPtions }).then(async (browser: Browser) => {
     if (rest.emulate) await emulate(browser, rest.emulate)
     if (rest.abort) await abort(browser, rest.abort)
     return browser

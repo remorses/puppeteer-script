@@ -9,6 +9,8 @@ import { solveNoCaptcha } from "./anticaptcha"
 // import { emulatePage } from "./emulate"
 const logger = console.log
 const WORKING_DIR = dirname((<any>require).main.filename)
+import chalk from "chalk"
+const { red, bold, bgRed, white } = chalk
 
 
 export interface Action {
