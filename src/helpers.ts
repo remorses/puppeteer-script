@@ -1,4 +1,5 @@
 import { Browser, Page, ElementHandle, JSHandle, Target } from "puppeteer"
+import { emulatePage } from "emulate";
 const logger = console.log
 
 export const waitForLoad = (page: Page) => new Promise((res) => {
@@ -121,4 +122,11 @@ export const ifThen = async (check: any, fun: any) => {
     return await fun(check)
   else
     return null
+}
+
+
+export const preparePage = async (page: Page) => {
+  const { EMULATE = null } = process.env
+  if (EMULATE) await emulatePage(page, EMULATE)
+  await (<any>page)._client.send('Emulation.clearDeviceMetricsOverride')
 }
