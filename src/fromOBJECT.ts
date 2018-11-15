@@ -1,90 +1,58 @@
+require('dotenv').config()
 
-import * as YAML from "yaml"
 import * as fs from "mz/fs"
 import { join, dirname } from "path"
-import { launch, Browser, Page } from "puppeteer";
+import { Browser, Page } from "puppeteer";
+import { reducer, Action } from "./reducer/reducer"
+import { prepare } from "./prepare/prepare";
+const logger = console.log //require("debug")("script")
 import chalk from "chalk"
-import { makeDoSteps, DoSteps } from "./doSteps"
-import { makeEmulate } from "./emulate"
-import { abort } from "./abort"
-import { makeSolveNoCaptcha } from "./anticaptcha"
-const logger = require("debug")("script")
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
+// import { roughSizeOfObject } from "./helpers"
 
-
-// logger("WORKING_DIR:", WORKING_DIR)
 export const fromOBJECT = async (script: Object) => {
 
+  const browser: Browser = await prepare(script)
 
-  let options: any = {}
+  const page: Page = (await browser.pages())[0]
 
-  // logger("script:", script.do)
-  let solveNoCaptcha: Function
-  const executablePath: string = script["executable"] || ""
-  const headless: boolean = !!script["headless"]
-  const requestsToAbort = script["abort"] || []
-  const [emulate, emulationArgs] = makeEmulate(script["emulate"] || "")
-  const args = script["args"] || []
-  const defaults = ['--no-sandbox', '--disable-setuid-sandbox']
+  await script["do"]
 
-  options.clientKey = script["anti-captcha-key"] || null
+    .map(obj => {
+      const key = Object.keys(obj)[0]
+      const value = obj[key]
+      return { method: key, arg: value }
+    })
 
-  const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
+    .reduce(async (state, action) => {
+      return await reducer(await state, action)
 
-  await launch({ headless, executablePath, ...emulationArgs, args: [...defaults, ...args], defaultViewport: { width, height } })
-  .then(async (browser: Browser) => {
+        .then(x => {
+          logExecuted(action)
+          return x
+        })
 
-    await emulate(browser)
+        .catch(e => {
+          logError(e, action)
+          process.exit(1)
+        })
 
-    await abort(browser, requestsToAbort)
+    }, Promise.resolve(page))
 
-    const pages = await browser.pages()
-    let page: Page = pages[0]
+    .then(x => {
+      logger(bold("done"))
+      return x
+    })
 
-    const doSteps: DoSteps = makeDoSteps(browser, logger, options)
-    // logger("doSteps", doSteps)
-
-    let func: Function
-    let key: string = ""
-    let value: string = ""
-
-    try {
-
-      for (let step of script["do"]) {
-
-
-        key = Object.keys(step)[0]
-        value = step[key];
-        console.log(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
-
-
-
-        if (DEBUG.match(/script*/i)) {
-          const pagesLogs = (await browser.pages())
-            .map((x: Page) => x.url())
-            .map((x, i) => i + ". " + x + "\n")
-          logger("pages:\n", ...pagesLogs)
-        }
-
-
-
-        func = await (<any>doSteps)[key]
-        if (!func) console.error(red(bold(key) + " still not implemented"))
-
-        page = await (await func(page)(value))
-      }
-
-    } catch (e) {
-      console.error(red("Error in " + bold(key + ": " + value) + " step" + "\n" + e["message"].trim()))
-      process.exit(1)
-
-    }
-
-    return
-
-
-  })
-
-  logger(bold("done"))
 }
+
+
+
+const logExecuted = action => logger(("\n" + "Executed "
+  + bold("'" + action.method + "'" + " : "
+    + JSON.stringify(action.arg))))
+
+
+const logError = (e, action) => logger(red("Error in " + bold(action.method
+  + ": " + action.arg) + " step" + "\n" + e["message"].trim()))

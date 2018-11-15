@@ -21,7 +21,7 @@ export const findElement = async (page: Page, selector = "div", regex: string = 
   if (elements.length < 1) return null
   for (let element of elements) {
     let inner: string = (await getContent(element)) || ""
-    logger("inner: " + inner)
+    // logger("inner: " + inner)
     // if (!inner) return null
     //  debug(inner.trim())
     if (eval(regex).test(inner.trim())) {
@@ -77,4 +77,57 @@ export const waitForElement = async (element: ElementHandle) => {
   }
   // logger("element is stationary now")
   return element
+}
+
+
+
+export function roughSizeOfObject(object) {
+
+  var objectList = [];
+  var stack = [object];
+  var bytes = 0;
+
+  while (stack.length) {
+    var value: any = stack.pop();
+
+    if (typeof value === 'boolean') {
+      bytes += 4;
+    }
+    else if (typeof value === 'string') {
+      bytes += value.length * 2;
+    }
+    else if (typeof value === 'number') {
+      bytes += 8;
+    }
+    else if
+    (
+      typeof value === 'object'
+      && (<any>objectList).indexOf(value) === -1
+    ) {
+      (<any>objectList).push(value);
+
+      for (var i in value) {
+        stack.push(value[i]);
+      }
+    }
+  }
+
+  return bytes;
+}
+
+
+export const ifThen = async (check: any, fun: any) => {
+  if (!!check)
+    return await fun(check)
+  else
+    return null
+}
+
+
+
+
+export const preparePage = async (page: Page) => {
+  const { EMULATE = null } = process.env
+  // if (EMULATE) await emulatePage(page, EMULATE)
+  await (<any>page)._client.send('Emulation.clearDeviceMetricsOverride')
 }
