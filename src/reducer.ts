@@ -11,16 +11,16 @@ const logger = console.log
 const WORKING_DIR = dirname((<any>require).main.filename)
 
 
-interface Action {
+export interface Action {
   method: string,
   arg: any
 }
 
-export const reducer = async (page: Page, action: Action): Promise<Page> => {
+export const reducer = async (state: Promise<Page>, action: Action): Promise<Page> => {
+
+  const page = await state
 
   switch (action.method) {
-
-
     case "go-to": {
       const url: string = action.arg
       await preparePage(page)
@@ -213,7 +213,7 @@ export const reducer = async (page: Page, action: Action): Promise<Page> => {
     // },
 
     default: {
-      logger(action.method + " still method not implemented")
+      logger(red(bold(action.method) + " still not implemented"))
       return page
     }
 

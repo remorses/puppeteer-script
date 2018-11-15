@@ -1,94 +1,44 @@
 require('dotenv').config()
 
-import * as YAML from "yaml"
 import * as fs from "mz/fs"
 import { join, dirname } from "path"
-import { launch, Browser, Page } from "puppeteer";
+import {  Browser, Page } from "puppeteer";
 import chalk from "chalk"
-import { makeDoSteps, DoSteps } from "./doSteps"
-import { emulate } from "./emulate"
-import { abort } from "./abort"
+import { reducer, Action } from "./reducer"
+import { prepare } from "./prepare";
 const logger = console.log //require("debug")("script")
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
-import { roughSizeOfObject } from "./helpers"
+// import { roughSizeOfObject } from "./helpers"
 
-// logger("WORKING_DIR:", WORKING_DIR)
 export const fromOBJECT = async (script: Object) => {
-  makeEnv(script)
-  const options = await makeOptions(script)
-  const browser: Browser = await makeBrowser(script, options)
-  const doSteps: DoSteps = makeDoSteps(browser, logger)
-  let page = (await browser.pages())[0]
 
-  let func: Function
-  let key: string = ""
-  let value: string = ""
+  const browser: Browser = await prepare(script)
 
-  try {
+  const page: Page = (await browser.pages())[0]
 
-    for (let step of script["do"]) {
-      logger(await page.evaluate("navigator.userAgent"))
+  await script["do"]
 
-      key = Object.keys(step)[0]
-      value = step[key];
-      logger(("\n" + "Executing " + bold("'" + key + "'" + " : " + JSON.stringify(value))))
+    .map(obj => {
+      const key = Object.keys(obj)[0]
+      const value = obj[key]
+      return { method: key, arg: value }
+    })
 
-      func =   doSteps[key]
-      if (!func) console.error(red(bold(key) + " still not implemented"))
-      page = await (await func(page)(value))
+    .map(({ method, arg }) => {
+      logger(("\n" + "Executing " + bold("'" + method + "'" + " : " + JSON.stringify(arg))))
+      return ({ method, arg })
+    })
 
+    .reduce((state, action) => {
+      return reducer(state, action)
+        .catch(e =>
+          logger(red("Error in " + bold(action.method + ": " + action.arg) + " step" + "\n" + e["message"].trim())))
+    }, Promise.resolve(page))
 
-      // if (DEBUG.match(/script*/i)) {
-      //   const pagesLogs = (await browser.pages())
-      //     .map((x: Page) => x.url())
-      //     .map((x, i) => i + ". " + x + "\n")
-      //   logger("pages:\n", ...pagesLogs)
-      // }
+    .then(x => {
+      logger(bold("done"))
+      return x
+    })
 
-
-    }
-  } catch (e) {
-    console.error(red("Error in " + bold(key + ": " + value) + " step" + "\n" + e["message"].trim()))
-    //process.exit(1)
-  }
-
-  logger(bold("done"))
-  // await browser.close()
-}
-
-
-const makeEnv = (script: any) => {
-
-
-  const set = (variable: string) => {
-    let scriptVariable = variable.toLowerCase().replace("_", "-")
-    process.env[variable] = script[scriptVariable] || process.env[variable] || null
-  }
-
-
-  set("EMULATE")
-  set("ANTICAPTCHA_KEY")
-  set("ANTICAPTCHA_CALLBACK")
-  set("USER_AGENT")
-}
-
-const makeOptions = async (script: any) => {
-  const defaults = []
-  const { width, height } = script["viewport"] || { width: 1000, height: 1000 }
-  let options: any =  {
-    args: [...defaults, ...(script["args"] || [])],
-    headless: !!script["headless"],
-    defaultViewport: { width, height }
-  }
-  if (script["executable"]) options.executablePath =  script["executable"]
-  return options
-}
-
-const makeBrowser = async (script: any, options) => {
-  return await launch({ ...options }).then(async browser => {
-    if(script["emulate"]) await emulate(browser, script["emulate"])
-    if (script["abort"]) await abort(browser, script["abort"])
-    return browser
-  })
 }
