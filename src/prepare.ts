@@ -1,20 +1,24 @@
 import { Browser } from "puppeteer";
-import { pipe } from "ramda"
 
 import { emulate } from "./emulate";
 import { abort } from "./abort";
 
 
 
-export const prepare = (script: Object): Browser =>
+export const prepare = async (script: Object): Promise<Browser> =>
   pipe(
-    makeEnv,
-    makeOptions,
-    makeBrowser
+    await makeEnv,
+    await makeOptions,
+    await makeBrowser
   )(script)
 
 
-const makeEnv = (script: any) => {
+const pipe = (...functions) => input =>
+  functions.reduce(
+    async (promise, func) => func(await promise),
+    Promise.resolve(input))
+
+const makeEnv = async (script: any) => {
   const set = (variable: string) => {
     let scriptVariable = variable.toLowerCase().replace("_", "-")
     process.env[variable] = script[scriptVariable] || process.env[variable] || null
@@ -42,7 +46,7 @@ const makeOptions = async (script: any) => {
   return options
 }
 
-const makeBrowser = async ( {launch, ...rest}) => {
+const makeBrowser = async ({ launch, ...rest }): Promise<Browser> => {
   return await launch({ ...launch }).then(async (browser: Browser) => {
     if (rest.emulate) await emulate(browser, rest.emulate)
     if (rest.abort) await abort(browser, rest.abort)
