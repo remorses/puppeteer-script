@@ -3,8 +3,8 @@ require('dotenv').config()
 import * as fs from "mz/fs"
 import { join, dirname } from "path"
 import { Browser, Page } from "puppeteer";
-import { reducer, Action } from "./reducer"
-import { prepare } from "./prepare";
+import { reducer, Action } from "./reducer/reducer"
+import { prepare } from "./prepare/prepare";
 const logger = console.log //require("debug")("script")
 import chalk from "chalk"
 const { red, bold, bgRed, white } = chalk

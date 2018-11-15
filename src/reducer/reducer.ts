@@ -3,7 +3,7 @@ import { Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
 import { waitForLoad, findElement, waitForElement, getAttribute, preparePage } from "./helpers"
-import { solveNoCaptcha } from "./anticaptcha/anticaptcha"
+import { solveNoCaptcha } from "./anticaptcha"
 // import { emulatePage } from "./emulate"
 const logger = console.log
 const WORKING_DIR = dirname((<any>require).main.filename)
