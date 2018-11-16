@@ -11,37 +11,44 @@ const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
 // import { roughSizeOfObject } from "./helpers"
 
-export const fromOBJECT = async (script: Object) => {
+// const browser: Browser = await prepare(script)
+// const page: Page = (await browser.pages())[0]
 
-  const browser: Browser = await prepare(script)
+export const fromOBJECT = async (script: Object, page) => {
 
-  const page: Page = (await browser.pages())[0]
+    await script["do"]
 
-  await script["do"]
+      .map(obj => {
+        const key = Object.keys(obj)[0]
+        const value = obj[key]
 
-    .map(obj => {
-      const key = Object.keys(obj)[0]
-      const value = obj[key]
-      return { method: key, arg: value }
-    })
 
-    .reduce(async (state, action) => {
-      logExecuting(action)
-      return await reducer(await state, action)
+        return { method: key, arg: value }
+      })
 
-        .catch(e => {
-          logError(e, action)
-          throw new e
-        })
+      .reduce(async (state, action) => {
+        logExecuting(action)
+        return await reducer(await state, action)
 
-    }, Promise.resolve(page))
+          .catch(e => {
+            logError(e, action)
+            throw new e
+          })
 
-    .then(x => {
-      logger(bold("done"))
-      return x
-    })
+      }, Promise.resolve(page))
+
+      .then(x => {
+        logger(bold("done"))
+        return x
+      })
+
 
 }
+
+
+
+
+
 
 
 
