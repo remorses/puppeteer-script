@@ -4,7 +4,7 @@ const {
 const path = require("path");
 const cpuStat = require("cpu-stat")
 const memStat = require("mem-stat")
-
+import { Cluster } from "puppeteer-cluster" 
 // console.log("current dir:", __dirname)
 // console.log("root dir:", path.resolve( "." ))
 

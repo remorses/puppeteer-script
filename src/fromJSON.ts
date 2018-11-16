@@ -24,5 +24,5 @@ const fillData = (script, data: Object) => {
     if (!data[content]) throw
     return data[content]
   }
-  return script.replace(/({{ ) (.*) ( }})/, replacer)
+  return script.replace(/({{ ) (.*) ( }})/g, replacer)
 }

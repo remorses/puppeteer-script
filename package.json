@@ -35,6 +35,7 @@
     "mem-stat": "^1.0.5",
     "mz": "^2.7.0",
     "puppeteer": "^1.10.0",
+    "puppeteer-cluster": "^0.12.1",
     "ramda": "^0.25.0",
     "regex-parser": "^2.2.9",
     "request": "^2.88.0",
