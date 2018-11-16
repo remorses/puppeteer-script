@@ -26,16 +26,12 @@ export const fromOBJECT = async (script: Object) => {
     })
 
     .reduce(async (state, action) => {
+      logExecuting(action)
       return await reducer(await state, action)
-
-        .then(x => {
-          logExecuted(action)
-          return x
-        })
 
         .catch(e => {
           logError(e, action)
-          process.exit(1)
+          throw new e
         })
 
     }, Promise.resolve(page))
@@ -49,7 +45,7 @@ export const fromOBJECT = async (script: Object) => {
 
 
 
-const logExecuted = action => logger(("\n" + "Executed "
+const logExecuting = action => logger(("\n" + "Executing "
   + bold("'" + action.method + "'" + " : "
     + JSON.stringify(action.arg))))
 
