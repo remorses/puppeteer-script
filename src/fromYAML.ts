@@ -11,18 +11,20 @@ export const fromYAML = (filePath = "./file.yaml") => {
   return async ({ page, data, worker }) => {
 
     const file: string = await fs.readFile(join(WORKING_DIR, filePath), "utf8")
-    const script = YAML.parse(file)
-    const filledScript = fillData(script, data)
-    return await fromOBJECT(filledScript, page)
+    const filledScript = fillData(file, data)
+
+    const script = YAML.parse(filledScript)
+
+    await fromOBJECT(script, page, worker)
 
   }
 }
 
 
-const fillData = (script, data: Object) => {
+const fillData = (script: string, data: Object) => {
   const replacer = (match, p1, content, p2, offset, string) => {
-    if (!data[content]) throw
+    if (!data[content]) throw new Error("cannot find the script variable {{ " + content + "}} in data")
     return data[content]
   }
-  return script.replace(/({{) (.*) (}})/g, replacer)
+  return script.replace(/({{)\s*(\w*)\s*(}})/g, replacer)
 }

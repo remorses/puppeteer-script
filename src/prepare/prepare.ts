@@ -56,3 +56,6 @@ const makeBrowser = async ({ launchOPtions, ...rest }): Promise<Browser> => {
     return browser
   })
 }
+
+
+import { Cluster } from "puppeteer-cluster"

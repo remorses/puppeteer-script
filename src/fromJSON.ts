@@ -10,10 +10,10 @@ export const fromJSON = (filePath = "./file.json") => {
 
   return async ({ page, data, worker }) => {
 
-    const file = await fs.readFile(join(WORKING_DIR, filePath), 'utf8')
-    const script = JSON.parse(file)
-    const filledScript = fillData(script, data)
-    return await fromOBJECT(filledScript, page)
+    const file: string = await fs.readFile(join(WORKING_DIR, filePath), "utf8")
+    const filledScript = fillData(file, data)
+    const script = JSON.parse(filledScript)
+    await fromOBJECT(filledScript, page, worker)
 
   }
 }
@@ -21,8 +21,8 @@ export const fromJSON = (filePath = "./file.json") => {
 
 const fillData = (script, data: Object) => {
   const replacer = (match, p1, content, p2, offset, string) => {
-    if (!data[content]) throw
+    if (!data[content]) throw new Error("cannot find the script variable {{ " + content + " }} in data")
     return data[content]
   }
-  return script.replace(/({{ ) (.*) ( }})/g, replacer)
+  return script.replace(/({{) (.*) (}})/g, replacer)
 }

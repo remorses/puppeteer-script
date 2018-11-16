@@ -14,7 +14,7 @@ const { DEBUG = "" } = process.env
 // const browser: Browser = await prepare(script)
 // const page: Page = (await browser.pages())[0]
 
-export const fromOBJECT = async (script: Object, page) => {
+export const fromOBJECT = async (script: Object, page, worker) => {
 
     await script["do"]
 
@@ -27,12 +27,16 @@ export const fromOBJECT = async (script: Object, page) => {
       })
 
       .reduce(async (state, action) => {
-        logExecuting(action)
+
         return await reducer(await state, action)
 
           .catch(e => {
-            logError(e, action)
+            logError(e, action, worker)
             throw new e
+          })
+          .then(x => {
+            logExecuted(action, worker)
+            return x
           })
 
       }, Promise.resolve(page))
@@ -52,10 +56,8 @@ export const fromOBJECT = async (script: Object, page) => {
 
 
 
-const logExecuting = action => logger(("\n" + "Executing "
-  + bold("'" + action.method + "'" + " : "
-    + JSON.stringify(action.arg))))
+const logExecuted = (action, worker) => logger("\n", `Worker ${worker.id} executed ${bold(action.method)} : ${bold(JSON.stringify(action.arg))}`)
 
 
-const logError = (e, action) => logger(red("Error in " + bold(action.method
-  + ": " + action.arg) + " step" + "\n" + e["message"].trim()))
+const logError = (e, action, worker) => logger(red("Error from worker " +
+worker.id + " in " + bold(action.method + ": " + action.arg) + " step" + "\n" + e["message"].trim()))

@@ -10,7 +10,7 @@ anti-captcha-key: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
 
 
 do:
-  - go-to:   https://instagram.com
+  - go-to:   {{  url }}
   - wait: 0
   - click:   'input[name="emailOrPhone"]'
   - type:    "usernamedfsfgshdfhdfgh@gmail.com" # keyboard.type
