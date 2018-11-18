@@ -12,13 +12,13 @@ export const waitForLoad = (page: Page) => new Promise((res) => {
 
 
 
-export const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle | null> => {
+export const findElement = async (page: Page, selector = "div", regex: string = "/.*/", ): Promise<ElementHandle > => {
   await page.waitForSelector(selector)
   // logger(regex)
   // logger(eval(regex))
   const elements: ElementHandle[] = await page.$$(selector)
   // logger(elements.length)
-  if (elements.length < 1) return null
+  if (elements.length < 1) throw "no elements"
   for (let element of elements) {
     let inner: string = (await getContent(element)) || ""
     // logger("inner: " + inner)
@@ -29,7 +29,7 @@ export const findElement = async (page: Page, selector = "div", regex: string = 
       return element
     }
   }
-  return null
+  throw "can't find element"
 }
 
 

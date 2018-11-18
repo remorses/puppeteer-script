@@ -1,41 +1,45 @@
 const {
-  fromYAML
+  fromYAML,
+  implementationFromScript
 } = require("../lib");
 const path = require("path");
 const cpuStat = require("cpu-stat")
 const memStat = require("mem-stat")
-const {Cluster} = require("puppeteer-cluster");
+const {
+  Cluster
+} = require("puppeteer-cluster");
+
+let cluster
 
 const start = async () => {
 
 
-  const cluster = await Cluster.launch({
-    concurrency: Cluster.CONCURRENCY_CONTEXT,
+  cluster = await Cluster.launch({
+    concurrency: implementationFromScript("./example.yaml"),
     maxConcurrency: 2,
-    puppeteerOptions: {
-      headless: false
-    }
+    monitor: true,
   });
 
   await cluster.task(fromYAML("./example.yaml"));
 
   cluster.on('taskerror', (err, data) => {
-      console.log(`Error crawling ${data}: ${err.message}`);
+    console.log(`Error crawling ${data}: ${err.message}`);
   });
 
   await cluster.queue({
     url: 'http://www.google.com/'
   });
-  await cluster.queue({
-    url: 'http://www.wikipedia.org/'
-  });
+
 
   await cluster.idle();
   await cluster.close();
 
 }
 
-import { Cluster } from "puppeteer-cluster"
+setTimeout(() => cluster.queue({
+  url: 'http://www.wikipedia.org/'
+}), 5000)
+
 
 
 start()

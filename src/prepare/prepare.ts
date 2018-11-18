@@ -13,7 +13,7 @@ export const prepare = async (script: Object): Promise<Browser> =>
      makeEnv,
      makeOptions,
      makeBrowser
-  )(script).catch(logErr)
+  )(script)
 
 
 const pipe = (...functions) => input =>

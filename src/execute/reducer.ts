@@ -2,8 +2,7 @@ import * as fs from "mz/fs"
 import { Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
-import { waitForLoad, findElement, waitForElement, getAttribute, preparePage } from "./helpers"
-import { solveNoCaptcha } from "./anticaptcha"
+import { waitForLoad, findElement, waitForElement, getAttribute, preparePage, getContent } from "./helpers"
 // import { emulatePage } from "./emulate"
 const logger = console.log
 const WORKING_DIR = dirname((<any>require).main.filename)
@@ -16,57 +15,62 @@ export interface Action {
   arg: any
 }
 
-export const reducer = async (state: Promise<Page>, action: Action): Promise<Page> => {
+interface State {
+  page: Page,
+  data: any
+}
 
-  const page = await state
+export const reducer = async (state: Promise<State>, action: Action): Promise<State> => {
+
+  const { page, data } = await state
 
   switch (action.method) {
     case "go-to": {
       const url: string = action.arg
       await preparePage(page)
       await page.goto(url)
-      return page
+      return { page, data }
 
     }
     // TODO create interface
     case "click": {
       const arg = action.arg
-      let selector, containing
+      let selector, content
       if (typeof arg === "object") {
         selector = arg["selector"] || ""
-        containing = arg["containing"] || "/.*/"
+        content = arg["content"] || "/.*/"
       } else {
         selector = arg
-        containing = "/.*/"
+        content = "/.*/"
       }
 
       // logger(selector)
-      const element = await findElement(page, selector, containing)
-      if (!element) throw new Error("no element found contining " + containing)
+      const element = await findElement(page, selector, content)
+      if (!element) throw new Error("no element found contining " + content)
       await waitForElement(element)
       await element.click({ clickCount: 2 })
 
-      return page
+      return { page, data }
     }
 
 
     case "type": {
       const arg = action.arg
       if (typeof arg === "object") {
-        const { selector, containing, } = arg;
-        const element = await findElement(page, <string>selector, <string>containing)
+        const { selector, content, } = arg;
+        const element = await findElement(page, <string>selector, <string>content)
         if (!element) throw new Error("no element")
         await element.click()
       } else {
         await page.keyboard.type(arg)
       }
-      return page
+      return { page, data }
     }
 
     case "press": {
       const button = action.arg
       page.keyboard.press(button)
-      return page
+      return { page, data }
     }
 
     case "new-page": {
@@ -77,19 +81,19 @@ export const reducer = async (state: Promise<Page>, action: Action): Promise<Pag
         // .then(async page => process.env["EMULATE"] ? await emulatePage(page, <any>process.env["EMULATE"]) : page)
         .then(page => page.goto(url))
       await preparePage(_page)
-      return _page
+      return { page: _page, data }
     }
 
     case "wait": {
       const time = action.arg
       time ? await page.waitFor(time) : await waitForLoad(page)
-      return page
+      return { page, data }
     }
 
     case "echo": {
       const text = action.arg
       logger(text)
-      return page
+      return { page, data }
     }
 
     case "close-page": {
@@ -107,7 +111,7 @@ export const reducer = async (state: Promise<Page>, action: Action): Promise<Pag
         }
         const newPage = await pages[pages.length - 1]
         if (newPage) await newPage.bringToFront()
-        return newPage
+        return { page: newPage, data }
 
       } else {
         pages[index].close()
@@ -117,7 +121,7 @@ export const reducer = async (state: Promise<Page>, action: Action): Promise<Pag
         }
         const newPage = await pages[pages.length - 1]
         if (newPage) await newPage.bringToFront()
-        return newPage
+        return { page: newPage, data }
       }
     }
 
@@ -130,12 +134,12 @@ export const reducer = async (state: Promise<Page>, action: Action): Promise<Pag
         const page = pages[pages.length + index]
         await page.bringToFront()
         await preparePage(page)
-        return page
+        return { page, data }
 
       } else {
         await pages[index].bringToFront();
         await preparePage(pages[index])
-        return pages[index]
+        return { page: pages[index], data }
       }
     }
 
@@ -144,7 +148,7 @@ export const reducer = async (state: Promise<Page>, action: Action): Promise<Pag
 
       let path = join(WORKING_DIR, file)
       page.screenshot({ path })
-      return page
+      return { page, data }
     }
 
     case "inject": {
@@ -152,35 +156,35 @@ export const reducer = async (state: Promise<Page>, action: Action): Promise<Pag
 
       const file = fs.readFileSync(join(WORKING_DIR, path), 'utf8')
       page.evaluate(file)
-      return page
+      return { page, data }
     }
 
     case "evaluate": {
       const code = action.arg
 
       page.evaluate(code)
-      return page
+      return { page, data }
     }
 
     case "set-user-agent": {
       const userAgent = action.arg
 
       await page.setUserAgent(userAgent)
-      return page
+      return { page, data }
     }
 
     case "set-cookies": {
       const path = action.arg
       const file = require(join(WORKING_DIR, path))
       await page.setCookie(...file)
-      return page
+      return { page, data }
     }
 
     case "export-html": {
       const path = action.arg
       const content = await page.content()
       await fs.writeFile(join(WORKING_DIR, path), content)
-      return page
+      return { page, data }
     }
 
     case "solve-nocaptcha": {
@@ -195,29 +199,52 @@ export const reducer = async (state: Promise<Page>, action: Action): Promise<Pag
       const solution = await solveNoCaptcha(page, process.env["ANTICAPTCHA_KEY"], siteKey, process.env["ANTICAPTCHA_CALLBACK"])
       // TODO replace text-area in form with the sitekey
 
-      return page
+      return { page, data }
+    }
+
+    case "return": {
+      const data = await Promise.all(action.arg.map(obj =>  returnData(page, obj )))
+      return { page, data }
     }
 
     // "block": (page: Page) => async ({ requests, responses, }) => {
     //   const promises1 = requests.map(({ to: url, types: types }) => block((await page.browser()), types, url))
     //   const promises2 = responses.map(({ from: url, types: types }) => redirect((await page.browser()), types, url))
     //   await Promise.all([...promises1, ...promises2])
-    //   return page
+    //   return { page, data }
     // },
 
     // "redirect": (page: Page) => async ({ requests, responses, to }) => {
     //   const promises1 = requests.map(({ to: url, types: types }) => abort((await page.browser()), types, url))
     //   const promises2 = responses.map(({ from: url, types: types }) => redirect((await page.browser()), types, url))
     //   await Promise.all([...promises1, ...promises2])
-    //   return page
+    //   return { page, data }
     // },
 
     default: {
       logger(red(bold(action.method) + " still not implemented"))
-      return page
+      return { page, data }
     }
 
 
 
+  }
+}
+
+
+
+const returnData = async (page, { as, selector, content, children, ...attributes }) => {
+  const element = await findElement(page, selector, content)
+
+  const rest = Object.keys(attributes).reduce(async (obj, key) =>
+    ({ ...(await obj), key: await getAttribute(page, element, attributes[key]) }),
+    Promise.resolve({}))
+
+  const object = {
+    as,
+    selector,
+    content: await getContent(element),
+    ...rest,
+    children: children.map(x => returnData(page, x))
   }
 }

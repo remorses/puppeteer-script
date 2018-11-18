@@ -12,21 +12,9 @@ anti-captcha-key: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
 do:
   - go-to:   {{  url }}
   - wait: 0
-  - click:   'input[name="emailOrPhone"]'
-  - type:    "usernamedfsfgshdfhdfgh@gmail.com" # keyboard.type
-  - click:   input[name="fullName"]
   - type:    "bot Bots"
-  - click:   input[name="username"]
-  - type:    "botnusfgmber56747"
-  - click:   input[name="password"]
-  - type:    "qwerty77"
-  - wait: 200
-  - click:   span#react-root button[type="submit"]
-  - wait: 300
-  - click: input[name="ageRadio"][value="above_18"]
-  - wait: 4000
-  - click: {selector: button, containing: /Avanti/i }
-  - solve-nocaptcha: "selector with site-key"
+  - inject: "./jquery.js"
+  - new-page: "ciao.com"
 # - close page: -1 # close current page, google
 
   # - export html: "./artifacts/file.html"

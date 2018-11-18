@@ -1,10 +1,7 @@
-import {fromYAML} from "./fromYAML"
-import {fromJSON} from "./fromJSON"
-import { fromOBJECT } from "./fromOBJECT";
-
+import { run } from "./run";
+import { Script } from "./script";
 
 export {
-  fromYAML,
-  fromJSON,
-  fromOBJECT
+  run,
+  Script
 }

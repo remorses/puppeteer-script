@@ -1,0 +1,61 @@
+
+
+
+
+prepare:
+  headless:              false
+  abort:                 ["media", "image", "websocket", "stylesheet", "font", "manifest"]
+  executable:            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  viewport:              [1000, 1000]
+  emulate:               Chrome
+  args:                  []
+  env:                   []
+  anti-captcha:
+    key:                 1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8
+    callback:            domain.com/anticaptcha
+
+
+execute:
+  - go-to:               {{  url }}
+  - click:
+      selector:          div
+      content:           /avanti/
+  - wait:                0
+  - type:                {{ username }}
+  - inject:              "./jquery.js"
+  - new-page:            "ciao.com"
+  - return:
+    - as:                url
+      url:               true
+    - as:                container,
+      selector:          div.container,
+      content:           /name/
+      children:
+        - as:            vote
+          selector:      div.vote
+          content:       /vote/
+          children:
+              - as:      number
+                type:    {{ type }}
+                content: true
+                href:    true
+                style:   true
+                url:     true
+    - as:                surname
+      selector:          div
+      content:           /regex/
+
+    # .then(({name: [{content, href, class, style, attribute}]}) => new User({name: content}).save())
+
+
+# - close page:          -1 # close current page, google
+
+  # - export html:       "./artifacts/file.html"
+  # - redirect:
+  #     requests:
+  #       - {  to: google.com, types: [xhr] }
+  #       - {  to: google.com, types: [xhr] }
+  #     responses:
+  #       - { from, types, }
+  #     to:              localhost:999
+  #     continue:        true
