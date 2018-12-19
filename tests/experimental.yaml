@@ -15,15 +15,65 @@ prepare:
     callback:            domain.com/anticaptcha
 
 
+figures:
+  - votes:               &vote
+      selector:          div.vote
+      map:
+        content:         vote_number
+  - films:               &film
+      selector:          div.film:contains(/avanti/)
+      containing:        /film/
+      map:
+        href:            film_link
+        text:            film_name
+      children:          *vote
+
+
+
+
+
 execute:
   - go-to:               {{  url }}
-  - click:
-      selector:          div
-      content:           /avanti/
+  - click:               [div, /avanti/]
   - wait:                0
   - type:                {{ username }}
   - inject:              "./jquery.js"
   - new-page:            "ciao.com"
+
+  - return:
+      selector:          div.film:contains(/avanti/)
+      containing:        /film/
+      map: { href: film_link, text: film_name }
+      children:
+        selector:        div.vote
+        map:
+          content:       vote_number
+  - return:              *film
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   - return:
     - as:                url
       url:               true
@@ -41,9 +91,19 @@ execute:
                 href:    true
                 style:   true
                 url:     true
-    - as:                surname
-      selector:          div
-      content:           /regex/
+    - selector:          div.container
+      return:
+        content:         film_type
+      children:
+        - selector:      div.film
+          content:       /film:/
+          return:
+            href:        film_href
+            style:       styling
+            content:     film_title
+
+
+      # returns [{ film_type: "", film_href: "http://sdfsd.dsf", film_title: "title"}, ]
 
     # .then(({name: [{content, href, class, style, attribute}]}) => new User({name: content}).save())
 

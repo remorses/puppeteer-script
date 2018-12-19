@@ -15,6 +15,7 @@ do:
   - type:    "bot Bots"
   - inject: "./jquery.js"
   - new-page: "ciao.com"
+
 # - close page: -1 # close current page, google
 
   # - export html: "./artifacts/file.html"

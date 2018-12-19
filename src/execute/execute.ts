@@ -16,7 +16,7 @@ const { DEBUG = "" } = process.env
 
 export const execute = async (script: Object, page, worker) => {
 
-  await script["do"]
+  const actions = script["do"]
 
     .map(obj => {
       const key = Object.keys(obj)[0]
@@ -24,7 +24,7 @@ export const execute = async (script: Object, page, worker) => {
       return { method: key, arg: value }
     })
 
-    .reduce(async (state, action) => {
+    const { data } = actions.reduce(async (state, action) => {
 
       return await reducer(await state, action)
 
@@ -44,6 +44,8 @@ export const execute = async (script: Object, page, worker) => {
       logger(bold("done"))
       return x
     })
+
+    return data
 
 
 }
