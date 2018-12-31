@@ -9,39 +9,40 @@ const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
 // import { roughSizeOfObject } from "./helpers"
 
-export const execute = async (script: Object, page, worker = '') => {
+export const execute = (script: Object, page, ) => new Promise((res, rej) => {
 
   const actions = script["do"]
-
     .map(obj => {
       const key = Object.keys(obj)[0]
       const value = obj[key]
       return { method: key, arg: value }
     })
 
-    const { data } = actions.reduce(async (state, action) => {
-
-      return await reducer(await state, action)
-
-        .then(x => {
-          logExecuted(action, worker)
-          return x
-        })
-
-        .catch(e => {
-          logError(e, action, worker)
-          throw new e
-        })
-
-    }, Promise.resolve({ page, data: {} }))
-
+  actions.reduce(wrapper, Promise.resolve({ page, data: {} }))
     .then(x => {
       logger(bold("done"))
       return x
     })
+    .then(state => state.data)
+    .then(res)
+    .catch(rej)
+  })
 
-    return data
 
+
+const wrapper = async (state, action) => {
+
+  return await reducer(await state, action)
+
+    .then(x => {
+      logExecuted(action )
+      return x
+    })
+
+    .catch(e => {
+      logError(e, action)
+      throw new e
+    })
 
 }
 
@@ -51,9 +52,7 @@ export const execute = async (script: Object, page, worker = '') => {
 
 
 
+const logExecuted = (action) => logger("\n", `executed ${bold(action.method)} : ${bold(JSON.stringify(action.arg))}`)
 
-const logExecuted = (action, worker) => logger("\n", `Worker ${worker.id} executed ${bold(action.method)} : ${bold(JSON.stringify(action.arg))}`)
 
-
-const logError = (e, action, worker) => logger(red("Error from worker " +
-  worker.id + " in " + bold(action.method + ": " + action.arg) + " step" + "\n" + e["message"].trim()))
+const logError = (e, action) => logger(red("Error in " + bold(action.method + ": " + action.arg) + " step" + "\n" + e["message"].trim()))
