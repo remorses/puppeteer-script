@@ -14,7 +14,7 @@ do:
   - wait: 0
   - type:    "bot Bots"
   - inject: "./jquery.js"
-  - new-page: "ciao.com"
+  - new-page: {{  url }}
 
 # - close page: -1 # close current page, google
 
