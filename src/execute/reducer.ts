@@ -26,7 +26,8 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
 
   switch (action.method) {
     case "go-to": {
-      const url: string = action.arg
+      const url: string = makeUrl(action.arg)
+
       await page.goto(url)
       return { page, data }
 
@@ -73,7 +74,7 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
     }
 
     case "new-page": {
-      const url = action.arg
+      const url = makeUrl(action.arg)
       let _page: Page = page
       await (await page.browser()).newPage()
         .then(page => _page = page)
@@ -246,4 +247,11 @@ const returnData = async (page, { as, selector, content, children, ...attributes
     ...rest,
     children: children.map(x => returnData(page, x))
   }
+}
+
+
+const makeUrl = url => {
+  if (! url.includes('http') || url.includes('https'))
+    return 'https://' + url
+  return url
 }
