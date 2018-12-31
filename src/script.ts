@@ -5,7 +5,7 @@ import { concurrency } from "./concurrency"
 
 
 import * as YAML from "yaml"
-import { join, dirname } from "path"
+import { join, dirname, extname, resolve } from "path"
 import * as fs from "mz/fs"
 import { execute } from "./execute/execute"
 import { prepare } from "./prepare/prepare";
@@ -25,23 +25,20 @@ const fillData = (script: string, data: Object) => {
 
 
 
-export const Script = ({ json, yaml, file }) => {
+export const Script = ({ file = '', yaml = '', json = '', data = {} }) => {
 
-  let runner, script,
-    concurrency_page, concurrency_context, concurrency_browser
+  let script
 
-  if (yaml && typeof yaml === "string") {
-    runner = async ({ page, data, worker }) => {
-      const filled = fillData(yaml, data)
-      script = YAML.parse(filled)
-      concurrency_page = concurrency(script, data, "page")
-      return await execute(script, page, worker)
-    }
-    runner.CONCURRENCY_PAGE = concurrency_page
-    runner.SCRIPT = script
-    runner.ID = 0
+
+  if (file && typeof file === "string") {
+    if (extname(file) === '.yaml') yaml =  fs.readFileSync(resolve(WORKING_DIR, file), {encoding: 'utf8'})
+    if (extname(file) === '.json') json =  fs.readFileSync(resolve(WORKING_DIR, file), {encoding: 'utf8'})
   }
 
-  return runner
+  if (yaml && typeof yaml === "string") {
+      const filled = fillData(yaml, data)
+      script = YAML.parse(filled)
+  }
 
+  return script
 }

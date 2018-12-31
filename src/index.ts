@@ -1,7 +1,7 @@
-import { run } from "./run";
 import { Script } from "./script";
+import { execute } from "./execute/execute";
 
 export {
-  run,
-  Script
+  Script,
+  execute
 }

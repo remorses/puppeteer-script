@@ -27,7 +27,6 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
   switch (action.method) {
     case "go-to": {
       const url: string = action.arg
-      await preparePage(page)
       await page.goto(url)
       return { page, data }
 
@@ -187,20 +186,20 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
       return { page, data }
     }
 
-    case "solve-nocaptcha": {
-      const selector = action.arg
-
-      const elem = await page.$(selector)
-      if (!elem) throw new Error("can't find the captcha element with selector '" + selector + "'")
-
-      const siteKey = await getAttribute(page, elem, "site-key")
-
-      if (!process.env["ANTICAPTCHA_KEY"]) throw Error("please put ANTICAPTCHA_KEY in environment or anticaptcha-key in script file")
-      const solution = await solveNoCaptcha(page, process.env["ANTICAPTCHA_KEY"], siteKey, process.env["ANTICAPTCHA_CALLBACK"])
-      // TODO replace text-area in form with the sitekey
-
-      return { page, data }
-    }
+    // case "solve-nocaptcha": {
+    //   const selector = action.arg
+    //
+    //   const elem = await page.$(selector)
+    //   if (!elem) throw new Error("can't find the captcha element with selector '" + selector + "'")
+    //
+    //   const siteKey = await getAttribute(page, elem, "site-key")
+    //
+    //   if (!process.env["ANTICAPTCHA_KEY"]) throw Error("please put ANTICAPTCHA_KEY in environment or anticaptcha-key in script file")
+    //   const solution = await solveNoCaptcha(page, process.env["ANTICAPTCHA_KEY"], siteKey, process.env["ANTICAPTCHA_CALLBACK"])
+    //   // TODO replace text-area in form with the sitekey
+    //
+    //   return { page, data }
+    // }
 
     case "return": {
       const data = await Promise.all(action.arg.map(obj =>  returnData(page, obj )))

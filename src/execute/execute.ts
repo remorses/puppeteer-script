@@ -1,20 +1,15 @@
 require('dotenv').config()
 
-import * as fs from "mz/fs"
-import { join, dirname } from "path"
+
 import { Browser, Page } from "puppeteer";
 import { reducer, Action } from "./reducer"
-import { prepare } from "../prepare/prepare";
 const logger = console.log //require("debug")("script")
 import chalk from "chalk"
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
 // import { roughSizeOfObject } from "./helpers"
 
-// const browser: Browser = await prepare(script)
-// const page: Page = (await browser.pages())[0]
-
-export const execute = async (script: Object, page, worker) => {
+export const execute = async (script: Object, page, worker = '') => {
 
   const actions = script["do"]
 
