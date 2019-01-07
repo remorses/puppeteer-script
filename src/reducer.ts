@@ -25,7 +25,7 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
     const { page, data } = await state
 
     switch (action.method) {
-        case "go-to": {
+        case "go_to": {
             const url: string = makeUrl(action.arg)
 
             await page.goto(url)
@@ -73,7 +73,7 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
             return { page, data }
         }
 
-        case "new-page": {
+        case "new_page": {
             const url = makeUrl(action.arg)
             let _page: Page = page
             await (await page.browser()).newPage()
@@ -95,7 +95,7 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
             return { page, data }
         }
 
-        case "close-page": {
+        case "close_page": {
             const index = action.arg
             let pages = await (await page.browser()).pages()
             const length = [...pages].length
@@ -124,7 +124,7 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
             }
         }
 
-        case "target-page": {
+        case "target_page": {
             const index = action.arg
 
             await page.waitFor(100)
@@ -163,14 +163,14 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
             return { page, data }
         }
 
-        case "set-user-agent": {
+        case "set_user_agent": {
             const userAgent = action.arg
 
             await page.setUserAgent(userAgent)
             return { page, data }
         }
 
-        case "set-cookies": {
+        case "set_cookies": {
             const path = action.arg
             const file = require(join(WORKING_DIR, path))
             await page.setCookie(...file)

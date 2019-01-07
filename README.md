@@ -8,7 +8,7 @@ do:
     - wait:       0
     - type:       "bot Bots"
     - inject:     "./jquery.js"
-    - new-page:   {{  url }}
+    - new_page:   {{  url }}
     - click:      div#css
 
 ```
@@ -23,7 +23,7 @@ do:
     - wait:       0
     - type:       "bot Bots"
     - inject:     "./jquery.js"
-    - new-page:   {{  url }}
+    - new_page:   {{  url }}
     - click:      div#css
 
 ```

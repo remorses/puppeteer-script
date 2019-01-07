@@ -33,12 +33,12 @@ figures:
 
 
 execute:
-  - go-to:               {{  url }}
+  - go_to:               {{  url }}
   - click:               [div, /avanti/]
   - wait:                0
   - type:                {{ username }}
   - inject:              "./jquery.js"
-  - new-page:            "ciao.com"
+  - new_page:            "ciao.com"
 
   - return:
       selector:          div.film:contains(/avanti/)
