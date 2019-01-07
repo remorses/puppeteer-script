@@ -24,7 +24,7 @@ export const execute = (script: Object, page, ) => new Promise((res, rej) => {
             })
             .map(({ method: pkg, arg: settings }) => {
                 import(pkg)
-                    .then(({default: custom_reducer}) => {
+                    .then(({ default: custom_reducer }) => {
                         local.reducer = pipe(custom_reducer(settings), local.reducer)
                     })
             })
@@ -68,10 +68,11 @@ const wrapper = async (state, action) => {
 
 
 
-const pipe = (...functions) => input =>
-  functions.reduce(
-    async (promise, func) => func(await promise),
-    Promise.resolve(input))
+const pipe = (...functions) => (...inputs) =>
+    functions.reduce(
+        async (promise, func) => func(...(await promise)),
+        Promise.resolve(inputs)
+    )
 
 
 
