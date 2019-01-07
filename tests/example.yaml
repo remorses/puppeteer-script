@@ -1,29 +1,60 @@
 
-headless: false
-#abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
-#executable: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+headless:              false
+#abort:                ["media", "image", "websocket", "stylesheet", "font", "manifest"]
+#executable:           "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 #viewport: { width: 1000, height: 1000 }
-emulate: Chrome
-args: []
-anti-captcha-key: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
+emulate:               Chrome
+args:                  []
+anti-captcha-key:      "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
 #anticaptcha-callback: "url.es"
 
 
 do:
-  - go-to:   {{  url }}
-  - wait: 0
-  - type:    "bot Bots"
-  - inject: "./jquery.js"
-  - new-page: {{  url }}
+  - go-to:             {{  url }}
+  - wait:              0
+  - type:              "bot Bots"
+  - inject:            "./jquery.js"
+  - new-page:          {{  url }}
+  - click:             div#css
+  - export:            {{ html_file_path }}
+  - exec:              python -m scraper --html {{  html_file_path }}
 
-# - close page: -1 # close current page, google
+  
+  - export:            {{ html_folder }}
+  # then run scraper script for that folder
 
-  # - export html: "./artifacts/file.html"
+
+nodes:
+
+  Form:
+    where:
+      selector:        div#reg_form_box
+
+
+  FirstName:
+    scrape:            {}
+    where:
+      selector:        input[name="firstname"]
+      edges:    { parent: Form,}
+
+
+  Surname:
+    scrape:            {}
+    where:
+      selector:        input[name="surname"]
+      edges:    { parent: Form,}
+
+
+
+
+# - close page:        -1 # close current page, google
+
+  # - export html:     "./artifacts/file.html"
   # - redirect:
   #     requests:
   #       - {  to: google.com, types: [xhr] }
   #       - {  to: google.com, types: [xhr] }
   #     responses:
   #       - { from, types, }
-  #     to: localhost:999
-  #     continue: true
+  #     to:            localhost:999
+  #     continue:      true
