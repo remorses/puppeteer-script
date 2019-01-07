@@ -165,7 +165,6 @@ export const reduceReducers = (...args) => {
     }
 
     return async (prevState, value, ...args) => {
-        prevState = await prevState
         const prevStateIsUndefined = typeof prevState === 'undefined';
         const valueIsUndefined = typeof value === 'undefined';
 
@@ -174,7 +173,6 @@ export const reduceReducers = (...args) => {
         }
 
         return await reducers.reduce(async (newState, reducer, index) => {
-            newState = await newState
             if (typeof reducer === 'undefined') {
                 throw new TypeError(
                     `An undefined reducer was passed in at index ${index}`
