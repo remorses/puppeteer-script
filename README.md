@@ -4,12 +4,12 @@ Execute actions through a readable YAML script
 For example write a yaml script like this for executing an Instagram subscription
 ```yaml
 do:
-  - test:      'http://google.com'
-  - wait:       0
-  - type:       "bot Bots"
-  - inject:     "./jquery.js"
-  - new-page:   {{  url }}
-  - click:      div#css
+    - test:      'http://google.com'
+    - wait:       0
+    - type:       "bot Bots"
+    - inject:     "./jquery.js"
+    - new-page:   {{  url }}
+    - click:      div#css
 
 ```
 
@@ -18,13 +18,13 @@ If you want to add functionality you can easily add features with plug-ins
 use:
     ./reducer2:    { settingA: 1, settingB: 2}
 
-    do:
-      - test:      'http://google.com'
-      - wait:       0
-      - type:       "bot Bots"
-      - inject:     "./jquery.js"
-      - new-page:   {{  url }}
-      - click:      div#css
+do:
+    - test:      'http://google.com'
+    - wait:       0
+    - type:       "bot Bots"
+    - inject:     "./jquery.js"
+    - new-page:   {{  url }}
+    - click:      div#css
 
 ```
 
