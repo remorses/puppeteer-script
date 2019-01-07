@@ -24,7 +24,7 @@ export const execute = (script: Object, page, ) => new Promise((res, rej) => {
             .map(({ method: pkg, arg: settings }) => {
                 import(pkg)
                     .then(({ default: custom_reducer }) => {
-                        local.reducer = pipe(custom_reducer(settings), local.reducer)
+                        local.reducer = pipe(local.reducer, custom_reducer(settings))
                     })
             })
     }
