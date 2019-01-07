@@ -1,6 +1,3 @@
-import { fromYAML } from "./fromYAML"
-import { fromJSON } from "./fromJSON"
-import { concurrency } from "./concurrency"
 
 
 
@@ -17,7 +14,7 @@ const WORKING_DIR = dirname((<any>require).main.filename)
 
 const fillData = (script: string, data: Object) => {
   const replacer = (match, p1, content, p2, offset, string) => {
-    if (!data[content]) throw new Error("cannot find the script variable {{ " + content + "}} in data")
+    if (!data[content]) throw new Error("cannot find the script variable {{ " + content + " }} in data")
     return data[content]
   }
   return script.replace(/({{ )\s*(\w*)\s*( }})/g, replacer)
@@ -28,7 +25,6 @@ const fillData = (script: string, data: Object) => {
 export const Script = ({ file = '', yaml = '', json = '', data = {} }) => {
 
   let script
-
 
   if (file && typeof file === "string") {
     if (extname(file) === '.yaml') yaml =  fs.readFileSync(resolve(WORKING_DIR, file), {encoding: 'utf8'})

@@ -1,0 +1,73 @@
+
+use:
+    - anti-captcha-psx:    { api_key: 'sdfsdfggfds' }
+    - scraper-psx:         { version: 1 }
+    - for-loop-psx:        { mode: parallel }
+    # the actions inside the for loop will be executed concurrently
+    - chrome-emulator-psx:        { }
+
+
+
+actions:
+    - emulate:                    Chrome
+
+    # Scrape the content
+    - for url in {{ data.results.urls }}:
+            - new_page:           url
+            - wait:               0
+            - scrape:     { results: [{ email: Email, name: Name }] }
+            - close_page:         true
+    - for node in scrape Form.html:
+            - scrape
+
+
+
+    # for loops are just keys that begins with /for /
+    # the actions inside the for object will be executed for every element
+    # of the list after the / in */
+    # the list is thought to be given with a variable inside {{ }}
+    # to scrape multiple links whithout having to relaunch another scriptfor example
+    - for foo in [1, 2, 3, 4]:
+            - echo:               foo
+
+
+
+
+
+    # if scrape model has an array with object inside
+    # with multiple Nodes as values, i have to scrape thes nodes concurrently:
+    # scraped one node i check the other type, checking if it is the right edge,
+    # if it is then i pack it in the object and continue with the next.
+    # another option would be:
+    # scrape: { links: [Link], names: [Name] }
+    # but this way i would loose the relation that names have with links
+
+
+    # scrape is done adding to the state of the reducer the scraped data
+    # at the last cycle the reducer returns the state and
+    # doing so returns all the accumulated (and merged!) data
+
+    # data is merged so if you go to differend pages with the same type of data you
+    # can scrape a clean object with all similar data in same keys,
+    # without having to insert keys like { page1: {...}, page2: {...} }
+
+
+
+
+
+
+
+nodes:
+
+    Email:
+            scrape:               content
+            where:
+                        selector: a.email
+
+
+    Name:
+            scrape:               content
+            where:
+                        selector: 'selector > .bo'
+                        edges:    { sibling_of: Email }
+                        href:     false

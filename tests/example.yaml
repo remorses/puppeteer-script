@@ -1,20 +1,43 @@
 
-headless: false
-#abort:      ["media", "image", "websocket", "stylesheet", "font", "manifest"]
-#executable: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-#viewport: { width: 1000, height: 1000 }
-emulate: Chrome
-args: []
-anti-captcha-key: "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
-#anticaptcha-callback: "url.es"
-
+use:
+    ./reducer2: 'ciaooo'
 
 do:
-  - go-to:   {{  url }}
-  - wait: 0
-  - type:    "bot Bots"
-  - inject: "./jquery.js"
-  - new-page: {{  url }}
+  - test:      'http://google.com'
+  - wait:       0
+  - type:       "bot Bots"
+  - inject:     "./jquery.js"
+  - new_page:   {{  url }}
+  - click:      div#css
+
+
+
+  # - export:
+  # # then run scraper script for that folder
+
+
+nodes:
+
+  Form:
+    where:
+      selector: div#reg_form_box
+
+
+  FirstName:
+    scrape:     {}
+    where:
+      selector: input[name="firstname"]
+      edges:    { parent: Form,}
+
+
+  Surname:
+    scrape:     {}
+    where:
+      selector: input[name="surname"]
+      edges:    { parent: Form,}
+
+
+
 
 # - close page: -1 # close current page, google
 
@@ -25,5 +48,5 @@ do:
   #       - {  to: google.com, types: [xhr] }
   #     responses:
   #       - { from, types, }
-  #     to: localhost:999
+  #     to:     localhost:999
   #     continue: true
