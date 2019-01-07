@@ -180,7 +180,7 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
       return { page, data }
     }
 
-    case "export-html": {
+    case "export": {
       const path = action.arg
       const content = await page.content()
       await fs.writeFile(join(WORKING_DIR, path), content)

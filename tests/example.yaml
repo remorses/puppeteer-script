@@ -16,12 +16,11 @@ do:
   - inject:            "./jquery.js"
   - new-page:          {{  url }}
   - click:             div#css
-  - export:            {{ html_file_path }}
-  - exec:              python -m scraper --html {{  html_file_path }}
 
-  
-  - export:            {{ html_folder }}
-  # then run scraper script for that folder
+
+
+  # - export:            
+  # # then run scraper script for that folder
 
 
 nodes:
