@@ -13,8 +13,7 @@ let local = { reducer }
 
 export const execute = (script: Object, page, ) => new Promise((res, rej) => {
 
-    // TODO add plugins when 'use' in script
-    // TODO
+
     if (script['use']) {
         script['use']
             .map(obj => {
@@ -37,7 +36,7 @@ export const execute = (script: Object, page, ) => new Promise((res, rej) => {
             return { method: key, arg: value }
         })
 
-    actions.reduce(wrapper, Promise.resolve({ page, data: {} }))
+    actions.reduce(wrappedReducer, Promise.resolve({ page, data: {} }))
         .then(x => {
             logger(bold("done"))
             return x
@@ -49,7 +48,7 @@ export const execute = (script: Object, page, ) => new Promise((res, rej) => {
 
 
 
-const wrapper = async (state, action) => {
+const wrappedReducer = async (state, action) => {
 
     return await local.reducer(await state, action)
 
