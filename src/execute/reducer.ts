@@ -80,7 +80,6 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
                 .then(page => _page = page)
                 // .then(async page => process.env["EMULATE"] ? await emulatePage(page, <any>process.env["EMULATE"]) : page)
                 .then(page => page.goto(url))
-            await preparePage(_page)
             return { page: _page, data }
         }
 
@@ -133,12 +132,10 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
             if (index < 0) {
                 const page = pages[pages.length + index]
                 await page.bringToFront()
-                await preparePage(page)
                 return { page, data }
 
             } else {
                 await pages[index].bringToFront();
-                await preparePage(pages[index])
                 return { page: pages[index], data }
             }
         }
