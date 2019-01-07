@@ -11,6 +11,9 @@ const { DEBUG = "" } = process.env
 
 export const execute = (script: Object, page, ) => new Promise((res, rej) => {
 
+  // TODO add plugins when 'use' in script
+  // TODO 
+
   const actions = script["do"]
     .map(obj => {
       const key = Object.keys(obj)[0]
