@@ -238,7 +238,7 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
         // },
 
         default: {
-            logger(red(bold(action.method) + " still not implemented"))
+            // logger(red(bold(action.method) + " still not implemented"))
             return { page, data }
         }
 

@@ -1,25 +1,18 @@
 
-headless:              false
-#abort:                ["media", "image", "websocket", "stylesheet", "font", "manifest"]
-#executable:           "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-#viewport: { width: 1000, height: 1000 }
-emulate:               Chrome
-args:                  []
-anti-captcha-key:      "1d7f3f41sdsdfgghh1b5ffb7640eda149dd73f8"
-#anticaptcha-callback: "url.es"
-
+use:
+    ./reducer2: 'ciaooo'
 
 do:
-  - go-to:             {{  url }}
-  - wait:              0
-  - type:              "bot Bots"
-  - inject:            "./jquery.js"
-  - new-page:          {{  url }}
-  - click:             div#css
+  - test:      'http://google.com'
+  - wait:       0
+  - type:       "bot Bots"
+  - inject:     "./jquery.js"
+  - new-page:   {{  url }}
+  - click:      div#css
 
 
 
-  # - export:            
+  # - export:
   # # then run scraper script for that folder
 
 
@@ -27,33 +20,33 @@ nodes:
 
   Form:
     where:
-      selector:        div#reg_form_box
+      selector: div#reg_form_box
 
 
   FirstName:
-    scrape:            {}
+    scrape:     {}
     where:
-      selector:        input[name="firstname"]
+      selector: input[name="firstname"]
       edges:    { parent: Form,}
 
 
   Surname:
-    scrape:            {}
+    scrape:     {}
     where:
-      selector:        input[name="surname"]
+      selector: input[name="surname"]
       edges:    { parent: Form,}
 
 
 
 
-# - close page:        -1 # close current page, google
+# - close page: -1 # close current page, google
 
-  # - export html:     "./artifacts/file.html"
+  # - export html: "./artifacts/file.html"
   # - redirect:
   #     requests:
   #       - {  to: google.com, types: [xhr] }
   #       - {  to: google.com, types: [xhr] }
   #     responses:
   #       - { from, types, }
-  #     to:            localhost:999
-  #     continue:      true
+  #     to:     localhost:999
+  #     continue: true
