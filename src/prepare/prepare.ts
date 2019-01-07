@@ -1,6 +1,4 @@
 import { Browser } from "puppeteer";
-import { emulate } from "./emulate";
-import { abort } from "./abort";
 import { launch } from "puppeteer"
 const logger = console.log
 import chalk from "chalk"
@@ -51,8 +49,6 @@ const makeOptions = async (script: any) => {
 
 const makeBrowser = async ({ launchOPtions, ...rest }): Promise<Browser> => {
   return await launch({ ...launchOPtions }).then(async (browser: Browser) => {
-    if (rest.emulate) await emulate(browser, rest.emulate)
-    if (rest.abort) await abort(browser, rest.abort)
     return browser
   })
 }

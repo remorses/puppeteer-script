@@ -2,7 +2,7 @@ import * as fs from "mz/fs"
 import { Page, ElementHandle, JSHandle, Target } from "puppeteer"
 import { join, dirname } from "path"
 // import { solveCaptcha } from "./anticaptcha/solveCaptcha";
-import { waitForLoad, findElement, waitForElement, getAttribute, getContent, abortPageRequests } from "./helpers"
+import { waitForLoad, findElement, waitForElement, getAttribute, getContent, abortPageRequests, emulatePage } from "./helpers"
 // import { emulatePage } from "./emulate"
 const logger = console.log
 const WORKING_DIR = dirname((<any>require).main.filename)
@@ -213,6 +213,15 @@ export const reducer = async (state: Promise<State>, action: Action): Promise<St
             const pages = await browser.pages()
             pages.forEach((page: Page) => abortPageRequests(page, types))
             browser.on('targetcreated', async (target: Target) => abortPageRequests(await target.page(), types))
+            return { page, data }
+        }
+
+        case "emulate": {
+            const device = action.arg
+            const browser = await page.browser()
+            const pages = await browser.pages()
+            pages.forEach((page: Page) => emulatePage(page, device))
+            browser.on('targetcreated', async (target: Target) => emulatePage(await target.page(), device))
             return { page, data }
         }
 
