@@ -1,7 +1,7 @@
 
 
 
-export default (settings) => async (state, action) => {
+module.exports.reducer = (settings) => async (state, action) => {
     const { page, data } = await state
     if (action.method === 'test') {
         console.log(`working!!!!, settings are ${settings}`)

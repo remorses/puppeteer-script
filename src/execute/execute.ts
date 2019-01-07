@@ -8,8 +8,12 @@ import chalk from "chalk"
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
 import { reduceReducers } from "./helpers"
+import { dirname, resolve } from 'path';
 
 let local: any = {  }
+
+const WORKING_DIR = dirname((<any>require).main.filename)
+
 
 export const execute = async (script: Object, page, ) => {
 
@@ -20,8 +24,9 @@ export const execute = async (script: Object, page, ) => {
                 return { method: key, arg: value }
             })
             .map(({ method: pkg, arg: settings }) => {
+                pkg = pkg.includes('.') ? resolve(WORKING_DIR, pkg) : pkg
                 return import(pkg)
-                    .then(({ default: custom_reducer }) => {
+                    .then(({ reducer: custom_reducer }) => {
                         return custom_reducer(settings)
                         logger('added plugin')
                     })
