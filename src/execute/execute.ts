@@ -7,27 +7,31 @@ const logger = console.log //require("debug")("script")
 import chalk from "chalk"
 const { red, bold, bgRed, white } = chalk
 const { DEBUG = "" } = process.env
-// import { roughSizeOfObject } from "./helpers"
+import { reduceReducers } from "./helpers"
 
-let local = { reducer }
+let local: any = {  }
 
-export const execute = (script: Object, page, ) => new Promise((res, rej) => {
+export const execute = async (script: Object, page, ) => {
 
 
     if (script['use']) {
-        script['use']
-            .map(obj => {
-                const key = Object.keys(obj)[0]
-                const value = obj[key]
+        let reducers = Object.entries(script['use'])
+            .map(([key, value]) => {
                 return { method: key, arg: value }
             })
             .map(({ method: pkg, arg: settings }) => {
-                import(pkg)
+                return import(pkg)
                     .then(({ default: custom_reducer }) => {
-                        local.reducer = pipe(local.reducer, custom_reducer(settings))
+                        return custom_reducer(settings)
+                        logger('added plugin')
                     })
             })
+
+        local.reducer =  await reduceReducers(...await Promise.all(reducers), reducer)
     }
+
+
+
 
     const actions = script["do"]
         .map(obj => {
@@ -36,15 +40,14 @@ export const execute = (script: Object, page, ) => new Promise((res, rej) => {
             return { method: key, arg: value }
         })
 
-    actions.reduce(wrappedReducer, Promise.resolve({ page, data: {} }))
+    return actions.reduce(wrappedReducer, Promise.resolve({ page, data: {} }))
         .then(x => {
             logger(bold("done"))
             return x
         })
         .then(state => state.data)
-        .then(res)
-        .catch(rej)
-})
+
+}
 
 
 
@@ -59,7 +62,7 @@ const wrappedReducer = async (state, action) => {
 
         .catch(e => {
             logError(e, action)
-            throw new e
+            throw  e
         })
 
 }
@@ -69,8 +72,8 @@ const wrappedReducer = async (state, action) => {
 
 const pipe = (...functions) => (...inputs) =>
     functions.reduce(
-        async (promise, func) => func(...(await promise)),
-        Promise.resolve(inputs)
+        async (promise, func) => func(await promise),
+        inputs
     )
 
 

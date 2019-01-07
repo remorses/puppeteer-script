@@ -140,13 +140,48 @@ export const emulatePage = async (page: Page, device: string) => {
 
 
 
-export const abortPageRequests = async (page: Page, types = [] ) => {
-  if (!page) return
-  await page.setRequestInterception(true);
-  page.on('request', (req: Request) => {
-    if (types.some(x => x === req.resourceType()) )
-      req.abort();
-    else
-      req.continue();
-  });
+export const abortPageRequests = async (page: Page, types = []) => {
+    if (!page) return
+    await page.setRequestInterception(true);
+    page.on('request', (req: Request) => {
+        if (types.some(x => x === req.resourceType()))
+            req.abort();
+        else
+            req.continue();
+    });
 }
+
+
+
+export const reduceReducers = (...args) => {
+    const initialState =
+        typeof args[args.length - 1] !== 'function' && args.pop();
+    const reducers = args;
+
+    if (typeof initialState === 'undefined') {
+        throw new TypeError(
+            'The initial state may not be undefined. If you do not want to set a value for this reducer, you can use null instead of undefined.'
+        );
+    }
+
+    return async (prevState, value, ...args) => {
+        prevState = await prevState
+        const prevStateIsUndefined = typeof prevState === 'undefined';
+        const valueIsUndefined = typeof value === 'undefined';
+
+        if (prevStateIsUndefined && valueIsUndefined && initialState) {
+            return initialState;
+        }
+
+        return await reducers.reduce(async (newState, reducer, index) => {
+            newState = await newState
+            if (typeof reducer === 'undefined') {
+                throw new TypeError(
+                    `An undefined reducer was passed in at index ${index}`
+                );
+            }
+
+            return await reducer(await newState, value, ...args);
+        }, prevStateIsUndefined && !valueIsUndefined && initialState ? initialState : prevState);
+    };
+};

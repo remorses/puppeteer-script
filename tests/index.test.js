@@ -7,7 +7,7 @@ const CHROMIUM = '/Applications/Chromium.app/Contents/MacOS/Chromium'
 const variables = { url: 'facebook.com'}
 
 const run = async (callback = x => None) => {
-  const browser = await puppeteer.launch({ executablePath: CHROMIUM })
+  const browser = await puppeteer.launch({ executablePath: CHROMIUM, headless: false })
   const page = (await browser.pages())[0]
 
   const script = Script({ file: './example.yaml', data: variables })
